@@ -5,18 +5,13 @@ import { env } from "./config/env";
 import { connectDatabase } from "./config/database";
 import cookieParser from "cookie-parser";
 import { HttpStatus } from "./domain/errors/status-codes.enum";
-
-//todos : express app init et. OK
-//env configini load et OK
-//mongodb baglantisini yap OK
-//health endpoint ekle OK
-//middleware express json OK
-//hata durumunda graceful shutdown
+import { UserRoutes } from "./presentation/http/routes/user-routes";
+import container from "./config/container";
+import { errorHandler } from "./presentation/http/middlewares/error-handler";
 
 async function bootstrap(): Promise<void> {
   const app = express();
 
-  //middlewares
   app.use(pinoHttp({ logger: Logger }));
   app.use(
     express.json({ strict: true, limit: "100kb", type: ["application/json"] }),
@@ -24,14 +19,21 @@ async function bootstrap(): Promise<void> {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
-  //db connection
   await connectDatabase();
+
+  app.use((req, res, next) => {
+    req.container = container.createScope();
+    next();
+  });
+
+  app.use("/users", (req, res, next) => {
+    req.container.resolve<UserRoutes>("userRoutes").router(req, res, next);
+  });
 
   app.get("/", (req, res) => {
     res.send("Hello, World!");
   });
 
-  //health checker
   app.get("/health", async (req, res) => {
     try {
       const dbCheck = (await connectDatabase()).connection.readyState === 1; // 1 == connected
@@ -50,13 +52,16 @@ async function bootstrap(): Promise<void> {
       });
     }
   });
+
+  app.use(errorHandler);
+
   app
     .listen(env.PORT, () => {
       Logger.info(`Server is running on port ${env.PORT}`);
     })
     .on("error", (err) => {
       Logger.error(`Server error: ${err}`);
-      process.exit(1); //graceful shutdown
+      process.exit(1);
     });
 }
 
