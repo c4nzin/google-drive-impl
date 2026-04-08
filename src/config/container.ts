@@ -18,12 +18,12 @@ container.register({
   jwtSecret: asValue(env.JWT_SECRET),
   jwtExpiresIn: asValue(env.JWT_EXPIRES_IN),
 
-  userRepository: asClass(UserRepository).scoped(),
-  userService: asClass(UserService).scoped(),
+  userRepository: asClass(UserRepository).singleton(),
+  userService: asClass(UserService).singleton(),
   userController: asClass(UserController).scoped(),
   userRoutes: asClass(UserRoutes).scoped(),
 
-  authService: asClass(AuthService).scoped(),
+  authService: asClass(AuthService).singleton(),
   authController: asClass(AuthController).scoped(),
   authRoutes: asClass(AuthRoutes).scoped(),
   localStrategy: asClass(LocalStrategy).singleton(),
