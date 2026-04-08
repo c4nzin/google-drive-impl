@@ -1,11 +1,11 @@
 import { User } from "../../domain/entities/User";
-import { BadRequestError, NotFoundError } from "../../domain/errors/app-error";
+import { ConflictError, NotFoundError } from "../../domain/errors/app-error";
 import { IUserRepository } from "../../domain/interfaces/IUserRepository";
 
 export class UserService {
   constructor(private userRepository: IUserRepository) {}
 
-  async getUserById(id: string): Promise<User | NotFoundError> {
+  async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findById(id);
 
     if (!user) {
@@ -15,7 +15,7 @@ export class UserService {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | NotFoundError> {
+  async getUserByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
@@ -25,11 +25,11 @@ export class UserService {
     return user;
   }
 
-  async createUser(user: User): Promise<User | BadRequestError> {
+  async createUser(user: User): Promise<User> {
     const existingUser = await this.userRepository.findByEmail(user.email);
 
     if (existingUser) {
-      throw new BadRequestError(`User with email ${user.email} already exists`);
+      throw new ConflictError(`User with email ${user.email} already exists`);
     }
 
     return this.userRepository.save(user);
