@@ -8,6 +8,7 @@ import { AuthService } from "../application/services/auth.service";
 import { AuthController } from "../presentation/http/controllers/auth-controller";
 import { AuthRoutes } from "../presentation/http/routes/auth.routes";
 import { env } from "./env";
+import { LocalStrategy } from "../infrastructure/passport/local.strategy";
 
 const container = createContainer({ injectionMode: InjectionMode.PROXY });
 
@@ -25,6 +26,7 @@ container.register({
   authService: asClass(AuthService).scoped(),
   authController: asClass(AuthController).scoped(),
   authRoutes: asClass(AuthRoutes).scoped(),
+  localStrategy: asClass(LocalStrategy).singleton(),
 });
 
 export default container;

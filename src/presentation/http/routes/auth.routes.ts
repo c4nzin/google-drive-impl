@@ -2,6 +2,7 @@ import { Router } from "express";
 import { AuthController } from "../controllers/auth-controller";
 import { validateRequest } from "../middlewares/validate-request";
 import { loginSchema, registerSchema } from "../schemas/auth.schema";
+import passport from "passport";
 
 export class AuthRoutes {
   public router: Router;
@@ -12,8 +13,11 @@ export class AuthRoutes {
   }
 
   public initializeRoutes() {
-    this.router.post("/login", validateRequest(loginSchema), (req, res, next) =>
-      this.authController.login(req, res, next),
+    this.router.post(
+      "/login",
+      validateRequest(loginSchema),
+      passport.authenticate("local", { session: false }),
+      (req, res, next) => this.authController.login(req, res, next),
     );
 
     this.router.post(

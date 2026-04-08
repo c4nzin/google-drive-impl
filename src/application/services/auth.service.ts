@@ -27,13 +27,7 @@ export class AuthService {
       throw new UnauthorizedError("Invalid credentials");
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      this.jwtSecret,
-      {
-        expiresIn: this.jwtExpiresIn as any,
-      },
-    );
+    const token = await this.generateToken(user);
 
     return token;
   }
@@ -46,5 +40,27 @@ export class AuthService {
     }
 
     return this.userRepository.save(data);
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      return null;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
+  }
+
+  async generateToken(user: User) {
+    return jwt.sign({ userId: user.id, email: user.email }, this.jwtSecret, {
+      expiresIn: this.jwtExpiresIn as any,
+    });
   }
 }

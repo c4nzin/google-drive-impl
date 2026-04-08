@@ -9,6 +9,8 @@ import { UserRoutes } from "./presentation/http/routes/user-routes";
 import { AuthRoutes } from "./presentation/http/routes/auth.routes";
 import container from "./config/container";
 import { errorHandler } from "./presentation/http/middlewares/error-handler";
+import passport from "passport";
+import { LocalStrategy } from "./infrastructure/passport/local.strategy";
 
 async function bootstrap(): Promise<void> {
   const app = express();
@@ -19,6 +21,9 @@ async function bootstrap(): Promise<void> {
   );
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
+
+  app.use(passport.initialize());
+  passport.use(container.resolve<LocalStrategy>("localStrategy"));
 
   await connectDatabase();
 
