@@ -6,6 +6,7 @@ import { connectDatabase } from "./config/database";
 import cookieParser from "cookie-parser";
 import { HttpStatus } from "./domain/errors/status-codes.enum";
 import { UserRoutes } from "./presentation/http/routes/user-routes";
+import { AuthRoutes } from "./presentation/http/routes/auth.routes";
 import container from "./config/container";
 import { errorHandler } from "./presentation/http/middlewares/error-handler";
 
@@ -28,6 +29,10 @@ async function bootstrap(): Promise<void> {
 
   app.use("/users", (req, res, next) => {
     req.container.resolve<UserRoutes>("userRoutes").router(req, res, next);
+  });
+
+  app.use("/auth", (req, res, next) => {
+    req.container.resolve<AuthRoutes>("authRoutes").router(req, res, next);
   });
 
   app.get("/", (req, res) => {

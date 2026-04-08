@@ -5,35 +5,9 @@ import {
   NotFoundError,
 } from "../../domain/errors/app-error";
 import { IUserRepository } from "../../domain/interfaces/IUserRepository";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { env } from "../../config/env";
 
 export class UserService {
   constructor(private userRepository: IUserRepository) {}
-
-  async login(email: string, password: string): Promise<string> {
-    const user = await this.getUserByEmail(email);
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    //replace this badrequesterror with unauthorized error to be more semantically correct but not implemented yet......
-    if (!isPasswordValid) {
-      throw new BadRequestError(`Invalid credentials`);
-    }
-
-    const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    return token;
-  }
-
-  async register(user: User): Promise<User> {
-    await this.getUserByEmail(user.email);
-
-    return this.userRepository.save(user);
-  }
 
   async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findById(id);
