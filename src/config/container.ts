@@ -1,7 +1,7 @@
 import { createContainer, asClass, asValue, InjectionMode } from "awilix";
 import { UserModel } from "../infrastructure/persistence/schemas/user-schema";
 import { UserRepository } from "../infrastructure/persistence/repositories/UserRepository";
-import { UserService } from "../application/services/UserService";
+import { UserService } from "../application/services/user.service";
 import { UserController } from "../presentation/http/controllers/user.controller";
 import { UserRoutes } from "../presentation/http/routes/user-routes";
 

@@ -8,7 +8,7 @@ export function validateRequest(schema: ZodSchema) {
       schema.parse(req.body);
       next();
     } catch (error: any) {
-      next(ValidationError);
+      next(new ValidationError(error.message));
     }
   };
 }

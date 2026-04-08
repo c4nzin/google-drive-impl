@@ -24,6 +24,7 @@ export function errorHandler(
     });
   }
 
+  Logger.error({ err }, "Unhandled error");
   return res.status(500).json({
     statusCode: 500,
     code: "INTERNAL_SERVER_ERROR",

@@ -12,6 +12,8 @@ const EnvSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   PORT: z.string().default("3000"),
   DATABASE_URI: z.string().nonempty("DATABASE_URI is required"),
+  JWT_SECRET: z.string().nonempty("JWT_SECRET is required"),
+  JWT_EXPIRES_IN: z.string().default("7d"),
 });
 
 export const env = EnvSchema.parse(process.env);

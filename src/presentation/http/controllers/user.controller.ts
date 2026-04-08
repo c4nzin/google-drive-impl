@@ -1,4 +1,4 @@
-import { UserService } from "../../../application/services/UserService";
+import { UserService } from "../../../application/services/user.service";
 import { Request, Response, NextFunction } from "express";
 import { HttpStatus } from "../../../domain/errors/status-codes.enum";
 

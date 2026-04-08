@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
+import { validateRequest } from "../middlewares/validate-request";
+import { userSchema, userUpdateSchema } from "../schemas/user.schema";
 
 export class UserRoutes {
   public router: Router;
@@ -18,12 +20,14 @@ export class UserRoutes {
       this.userController.getAllUsers(req, res, next),
     );
 
-    this.router.post("/", (req, res, next) =>
+    this.router.post("/", validateRequest(userSchema), (req, res, next) =>
       this.userController.createUser(req, res, next),
     );
 
-    this.router.put("/:id", (req, res, next) =>
-      this.userController.updateUser(req, res, next),
+    this.router.put(
+      "/:id",
+      validateRequest(userUpdateSchema),
+      (req, res, next) => this.userController.updateUser(req, res, next),
     );
   }
 }
