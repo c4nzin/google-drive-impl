@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { User } from "../../../domain/entities/User";
+import { User } from "../../../domain/entities/user";
 import * as bcrypt from "bcrypt";
 
 const UserSchema = new mongoose.Schema<User>(

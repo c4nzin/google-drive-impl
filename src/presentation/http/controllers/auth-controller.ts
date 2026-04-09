@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../../../application/services/auth.service";
 import { HttpStatus } from "../../../domain/errors/status-codes.enum";
-import { User } from "../../../domain/entities/User";
+import { User } from "../../../domain/entities/user";
 
 export class AuthController {
   constructor(private authService: AuthService) {}

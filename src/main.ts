@@ -11,6 +11,8 @@ import container from "./config/container";
 import { errorHandler } from "./presentation/http/middlewares/error-handler";
 import passport from "passport";
 import { LocalStrategy } from "./infrastructure/passport/local.strategy";
+import "reflect-metadata";
+import "./application/profiles/user.profile";
 
 async function bootstrap(): Promise<void> {
   const app = express();

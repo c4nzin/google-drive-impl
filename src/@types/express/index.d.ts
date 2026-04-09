@@ -1,5 +1,5 @@
 import { AwilixContainer } from "awilix";
-import { User } from "../../domain/entities/User";
+import { User } from "../../domain/entities/user";
 
 declare global {
   namespace Express {

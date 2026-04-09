@@ -1,5 +1,5 @@
-import { User } from "../../domain/entities/User";
-import { IUserRepository } from "../../domain/interfaces/IUserRepository";
+import { User } from "../../domain/entities/user";
+import { IUserRepository } from "../../domain/interfaces/user-repository.interface";
 import {
   ConflictError,
   UnauthorizedError,

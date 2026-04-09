@@ -1,10 +1,6 @@
-import { User } from "../../domain/entities/User";
-import {
-  BadRequestError,
-  ConflictError,
-  NotFoundError,
-} from "../../domain/errors/app-error";
-import { IUserRepository } from "../../domain/interfaces/IUserRepository";
+import { User } from "../../domain/entities/user";
+import { ConflictError, NotFoundError } from "../../domain/errors/app-error";
+import { IUserRepository } from "../../domain/interfaces/user-repository.interface";
 
 export class UserService {
   constructor(private userRepository: IUserRepository) {}

@@ -1,8 +1,8 @@
 import { AutoMap } from "@automapper/classes";
 
-export class User {
+export class UserResponseDto {
   @AutoMap()
-  id?: string;
+  id!: string;
 
   @AutoMap()
   username!: string;
@@ -10,17 +10,9 @@ export class User {
   @AutoMap()
   email!: string;
 
-  password!: string;
-
   @AutoMap()
   firstName?: string;
 
   @AutoMap()
   lastName?: string;
-
-  @AutoMap()
-  createdAt?: Date;
-
-  @AutoMap()
-  updatedAt?: Date;
 }
