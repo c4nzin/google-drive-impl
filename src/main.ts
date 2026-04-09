@@ -13,6 +13,11 @@ import passport from "passport";
 import { LocalStrategy } from "./infrastructure/passport/local.strategy";
 import "reflect-metadata";
 import "./application/profiles/user.profile";
+import {
+  authLimiter,
+  globalLimiter,
+} from "./presentation/http/middlewares/rate-limiter";
+import helmet from "helmet";
 
 async function bootstrap(): Promise<void> {
   const app = express();
@@ -23,6 +28,8 @@ async function bootstrap(): Promise<void> {
   );
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
+  app.use(globalLimiter);
+  app.use(helmet());
 
   app.use(passport.initialize());
   passport.use(container.resolve<LocalStrategy>("localStrategy"));
@@ -38,7 +45,7 @@ async function bootstrap(): Promise<void> {
     req.container.resolve<UserRoutes>("userRoutes").router(req, res, next);
   });
 
-  app.use("/auth", (req, res, next) => {
+  app.use("/auth", authLimiter, (req, res, next) => {
     req.container.resolve<AuthRoutes>("authRoutes").router(req, res, next);
   });
 
