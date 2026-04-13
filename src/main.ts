@@ -18,6 +18,8 @@ import {
   globalLimiter,
 } from "./presentation/http/middlewares/rate-limiter";
 import helmet from "helmet";
+import { buildSwagger } from "./presentation/http/swagger/swagger.builder";
+import { JwtStrategy } from "./infrastructure/passport/jwt-strategy";
 
 async function bootstrap(): Promise<void> {
   const app = express();
@@ -28,10 +30,16 @@ async function bootstrap(): Promise<void> {
   );
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
+
+  if (env.NODE_ENV === "development") {
+    await buildSwagger(app);
+  }
   app.use(globalLimiter);
   app.use(helmet());
 
   app.use(passport.initialize());
+  passport.use(container.resolve<JwtStrategy>("jwtStrategy"));
+
   passport.use(container.resolve<LocalStrategy>("localStrategy"));
 
   await connectDatabase();

@@ -9,6 +9,7 @@ import { AuthController } from "../presentation/http/controllers/auth-controller
 import { AuthRoutes } from "../presentation/http/routes/auth.routes";
 import { env } from "./env";
 import { LocalStrategy } from "../infrastructure/passport/local.strategy";
+import { JwtStrategy } from "../infrastructure/passport/jwt-strategy";
 
 const container = createContainer({ injectionMode: InjectionMode.PROXY });
 
@@ -27,6 +28,7 @@ container.register({
   authController: asClass(AuthController).scoped(),
   authRoutes: asClass(AuthRoutes).scoped(),
   localStrategy: asClass(LocalStrategy).singleton(),
+  jwtStrategy: asClass(JwtStrategy).singleton(),
 });
 
 export default container;
