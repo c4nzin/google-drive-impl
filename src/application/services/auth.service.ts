@@ -15,7 +15,9 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string): Promise<string> {
-    const user = await this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findByEmail(email, {
+      withPassword: true,
+    });
 
     if (!user) {
       throw new UnauthorizedError("Invalid credentials");
@@ -33,7 +35,9 @@ export class AuthService {
   }
 
   async register(data: User): Promise<User> {
-    const existing = await this.userRepository.findByEmail(data.email);
+    const existing = await this.userRepository.findByEmail(data.email, {
+      withPassword: false,
+    });
 
     if (existing) {
       throw new ConflictError(`User with email ${data.email} already exists`);
@@ -43,7 +47,9 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findByEmail(email, {
+      withPassword: true,
+    });
 
     if (!user) {
       return null;

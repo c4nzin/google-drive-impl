@@ -3,14 +3,23 @@ import { IUserRepository } from "../../../domain/interfaces/user-repository.inte
 import { UserModel } from "../schemas/user-schema";
 
 export class UserRepository implements IUserRepository {
-  constructor(private userModel: typeof UserModel) {} //burada direkt import ile yapmak yerine constrcutordan aldimki awilix ile container a eklerken daha esnek olsun diye test vs...
+  constructor(private userModel: typeof UserModel) {}
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email });
+  async findByEmail(
+    email: string,
+    options?: { withPassword?: boolean },
+  ): Promise<User | null> {
+    const query = this.userModel.findOne({ email });
+
+    if (options?.withPassword) {
+      query.select("+password");
+    }
+
+    return query.exec();
   }
 
   async save(user: User): Promise<User> {

@@ -5,7 +5,10 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
 
   //findByEmail
-  findByEmail(email: string): Promise<User | null>;
+  findByEmail(
+    email: string,
+    options: { withPassword?: boolean },
+  ): Promise<User | null>;
 
   //save
   save(user: User): Promise<User>;
