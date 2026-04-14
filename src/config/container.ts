@@ -18,6 +18,8 @@ container.register({
 
   jwtSecret: asValue(env.JWT_SECRET),
   jwtExpiresIn: asValue(env.JWT_EXPIRES_IN),
+  jwtRefreshSecret: asValue(env.JWT_REFRESH_SECRET),
+  jwtRefreshExpiresIn: asValue(env.JWT_REFRESH_EXPIRES_IN),
 
   userRepository: asClass(UserRepository).singleton(),
   userService: asClass(UserService).singleton(),

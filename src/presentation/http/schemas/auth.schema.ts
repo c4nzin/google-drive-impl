@@ -7,10 +7,14 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
   username: z.string().min(3).max(30),
-  email: z.string().email().max(500),
+  email: z.email().max(500),
   password: z.string().min(6).max(255),
   firstName: z.string().max(255).optional(),
   lastName: z.string().max(255).optional(),
+});
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
 });
 
 export type LoginSchema = z.infer<typeof loginSchema>;

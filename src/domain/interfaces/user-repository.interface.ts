@@ -1,14 +1,14 @@
 import { User } from "../entities/user";
 
+export interface QueryOptions {
+  select?: string[];
+}
 export interface IUserRepository {
   //findById
-  findById(id: string): Promise<User | null>;
+  findById(id: string, options?: QueryOptions): Promise<User | null>;
 
   //findByEmail
-  findByEmail(
-    email: string,
-    options: { withPassword?: boolean },
-  ): Promise<User | null>;
+  findByEmail(email: string, options?: QueryOptions): Promise<User | null>;
 
   //save
   save(user: User): Promise<User>;

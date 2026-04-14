@@ -1,22 +1,31 @@
 import { User } from "../../../domain/entities/user";
-import { IUserRepository } from "../../../domain/interfaces/user-repository.interface";
+import {
+  IUserRepository,
+  QueryOptions,
+} from "../../../domain/interfaces/user-repository.interface";
 import { UserModel } from "../schemas/user-schema";
 
 export class UserRepository implements IUserRepository {
   constructor(private userModel: typeof UserModel) {}
 
-  async findById(id: string): Promise<User | null> {
-    return this.userModel.findById(id);
+  async findById(id: string, options?: QueryOptions): Promise<User | null> {
+    const query = this.userModel.findById(id);
+
+    if (options?.select?.length) {
+      query.select(options.select.join(" "));
+    }
+
+    return query.exec();
   }
 
   async findByEmail(
     email: string,
-    options?: { withPassword?: boolean },
+    options?: QueryOptions,
   ): Promise<User | null> {
     const query = this.userModel.findOne({ email });
 
-    if (options?.withPassword) {
-      query.select("+password");
+    if (options?.select?.length) {
+      query.select(options.select.join(" "));
     }
 
     return query.exec();

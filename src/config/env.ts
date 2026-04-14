@@ -14,6 +14,8 @@ const EnvSchema = z.object({
   DATABASE_URI: z.string().nonempty("DATABASE_URI is required"),
   JWT_SECRET: z.string().nonempty("JWT_SECRET is required"),
   JWT_EXPIRES_IN: z.string().default("7d"),
+  JWT_REFRESH_SECRET: z.string().nonempty("JWT_REFRESH_SECRET is required"),
+  JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
 });
 
 export const env = EnvSchema.parse(process.env);

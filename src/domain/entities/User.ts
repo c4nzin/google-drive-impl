@@ -19,6 +19,9 @@ export class User {
   lastName?: string;
 
   @AutoMap()
+  refreshToken?: string;
+
+  @AutoMap()
   createdAt?: Date;
 
   @AutoMap()

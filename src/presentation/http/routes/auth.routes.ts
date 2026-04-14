@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth-controller";
 import { validateRequest } from "../middlewares/validate-request";
-import { loginSchema, registerSchema } from "../schemas/auth.schema";
+import {
+  loginSchema,
+  refreshTokenSchema,
+  registerSchema,
+} from "../schemas/auth.schema";
 import passport from "passport";
 
 export class AuthRoutes {
@@ -24,6 +28,12 @@ export class AuthRoutes {
       "/register",
       validateRequest(registerSchema),
       (req, res, next) => this.authController.register(req, res, next),
+    );
+
+    this.router.post(
+      "/refresh-token",
+      validateRequest(refreshTokenSchema),
+      (req, res, next) => this.authController.refreshToken(req, res, next),
     );
   }
 }
