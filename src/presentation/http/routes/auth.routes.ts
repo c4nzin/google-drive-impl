@@ -35,5 +35,11 @@ export class AuthRoutes {
       validateRequest(refreshTokenSchema),
       (req, res, next) => this.authController.refreshToken(req, res, next),
     );
+
+    this.router.post(
+      "/logout",
+      validateRequest(refreshTokenSchema),
+      (req, res, next) => this.authController.logout(req, res, next),
+    );
   }
 }

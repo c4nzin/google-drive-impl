@@ -16,24 +16,22 @@ export class AuthService {
     private jwtRefreshExpiresIn: string,
   ) {}
 
-  async login(email: string, password: string): Promise<string> {
+  async login(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findByEmail(email, {
       select: ["+password"],
     });
 
     if (!user) {
-      throw new UnauthorizedError("Invalid credentials");
+      return null;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedError("Invalid credentials");
+      return null;
     }
 
-    const token = await this.generateAccessToken(user);
-
-    return token;
+    return user;
   }
 
   async register(data: User): Promise<User> {
@@ -44,6 +42,28 @@ export class AuthService {
     }
 
     return this.userRepository.save(data);
+  }
+
+  async logout(refreshToken: string) {
+    let payload: { userId: string };
+
+    try {
+      payload = jwt.verify(refreshToken, this.jwtRefreshSecret) as {
+        userId: string;
+      };
+    } catch (error) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    const user = await this.userRepository.findById(payload.userId, {
+      select: ["+refreshToken"],
+    });
+
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    await this.userRepository.clearRefreshToken(user.id!);
   }
 
   async createTokens(user: User) {
@@ -76,24 +96,6 @@ export class AuthService {
 
     //cr token for user.
     return this.createTokens(user);
-  }
-
-  async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findByEmail(email, {
-      select: ["+password"],
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    return user;
   }
 
   private async generateAccessToken(user: User) {

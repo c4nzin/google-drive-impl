@@ -45,4 +45,12 @@ export class UserRepository implements IUserRepository {
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
   }
+
+  async clearRefreshToken(id: string): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(
+      id,
+      { $unset: { refreshToken: 1 } },
+      { new: true },
+    );
+  }
 }

@@ -14,7 +14,7 @@ export class LocalStrategy extends Strategy {
     try {
       const { email, password } = req.body;
 
-      const user = await this.authService.validateUser(email, password);
+      const user = await this.authService.login(email, password);
 
       if (!user) {
         this.fail({ message: "Invalid credentials" }, HttpStatus.Unauthorized);

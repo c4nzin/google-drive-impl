@@ -1,7 +1,7 @@
 import { User } from "../entities/user";
 
 export interface QueryOptions {
-  select?: string[];
+  select?: Array<string>;
 }
 export interface IUserRepository {
   //findById
@@ -21,4 +21,6 @@ export interface IUserRepository {
 
   //findAll
   findAll(): Promise<User[]>;
+
+  clearRefreshToken(id: string): Promise<User | null>;
 }
