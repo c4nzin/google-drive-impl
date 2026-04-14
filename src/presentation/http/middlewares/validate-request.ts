@@ -1,14 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodError, ZodSchema } from "zod";
+import { ZodError, ZodSchema, z } from "zod";
 import { ValidationError } from "../../../domain/errors/app-error";
 
 export function validateRequest(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse({
-      body: req.body,
-      query: req.query,
-      params: req.params,
-    });
+    const result = schema.safeParse(req.body);
 
     if (!result.success) {
       const zodError = result.error as ZodError;
@@ -18,14 +14,7 @@ export function validateRequest(schema: ZodSchema) {
       );
     }
 
-    const data = result.data as {
-      body?: unknown;
-      query?: unknown;
-      params?: unknown;
-    };
-    req.body = data.body as Request["body"];
-    req.params = data.params as Request["params"];
-    req.query = data.query as Request["query"];
+    req.body = result.data as Request["body"];
 
     next();
   };

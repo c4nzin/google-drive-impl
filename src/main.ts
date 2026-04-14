@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import pinoHttp from "pino-http";
 import Logger from "./infrastructure/logger";
 import { env } from "./config/env";
@@ -44,24 +44,24 @@ async function bootstrap(): Promise<void> {
 
   await connectDatabase();
 
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next) => {
     req.container = container.createScope();
     next();
   });
 
-  app.use("/users", (req, res, next) => {
+  app.use("/users", (req: Request, res: Response, next) => {
     req.container.resolve<UserRoutes>("userRoutes").router(req, res, next);
   });
 
-  app.use("/auth", authLimiter, (req, res, next) => {
+  app.use("/auth", authLimiter, (req: Request, res: Response, next) => {
     req.container.resolve<AuthRoutes>("authRoutes").router(req, res, next);
   });
 
-  app.get("/", (req, res) => {
+  app.get("/", (req: Request, res: Response) => {
     res.send("Hello, World!");
   });
 
-  app.get("/health", async (req, res) => {
+  app.get("/health", async (req: Request, res: Response) => {
     try {
       const dbCheck = (await connectDatabase()).connection.readyState === 1; // 1 == connected
 
@@ -86,7 +86,7 @@ async function bootstrap(): Promise<void> {
     .listen(env.PORT, () => {
       Logger.info(`Server is running on port ${env.PORT}`);
     })
-    .on("error", (err) => {
+    .on("error", (err: Error) => {
       Logger.error(`Server error: ${err}`);
       process.exit(1);
     });

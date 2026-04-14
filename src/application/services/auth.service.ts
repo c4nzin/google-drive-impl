@@ -5,7 +5,7 @@ import {
   UnauthorizedError,
 } from "../../domain/errors/app-error";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 
 export class AuthService {
   constructor(

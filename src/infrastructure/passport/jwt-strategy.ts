@@ -14,12 +14,10 @@ const strategyOptions: StrategyOptionsWithoutRequest = {
 };
 
 export class JwtStrategy extends BaseJwtStrategy {
-  constructor(private container: AwilixContainer) {
+  constructor(private userService: UserService) {
     super(strategyOptions, async (payload: any, done: any) => {
       try {
-        const userService = this.container.resolve<UserService>("userService");
-
-        const user = await userService.getUserById(payload.userId);
+        const user = await this.userService.getUserById(payload.userId);
 
         if (!user) {
           return done(null, false);

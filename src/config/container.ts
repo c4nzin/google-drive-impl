@@ -1,6 +1,5 @@
 import { createContainer, asClass, asValue, InjectionMode } from "awilix";
 import { UserModel } from "../infrastructure/persistence/schemas/user-schema";
-import { UserRepository } from "../infrastructure/persistence/repositories/UserRepository";
 import { UserService } from "../application/services/user.service";
 import { UserController } from "../presentation/http/controllers/user.controller";
 import { UserRoutes } from "../presentation/http/routes/user-routes";
@@ -10,8 +9,9 @@ import { AuthRoutes } from "../presentation/http/routes/auth.routes";
 import { env } from "./env";
 import { LocalStrategy } from "../infrastructure/passport/local.strategy";
 import { JwtStrategy } from "../infrastructure/passport/jwt-strategy";
+import { UserRepository } from "../infrastructure/persistence/repositories/user.repository";
 
-const container = createContainer({ injectionMode: InjectionMode.PROXY });
+const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
 container.register({
   userModel: asValue(UserModel),

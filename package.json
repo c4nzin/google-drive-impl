@@ -1,10 +1,10 @@
 {
   "name": "googledrive-nodejs",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Google Drive API with Node.js and Express",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/main.ts",
+    "start:dev": "ts-node src/main.ts",
     "build": "tsc",
     "start": "node dist/main.ts"
   },
@@ -15,7 +15,6 @@
   "dependencies": {
     "@automapper/classes": "^8.8.1",
     "@automapper/core": "^8.8.1",
-    "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.2",
@@ -49,7 +48,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38"
   }
