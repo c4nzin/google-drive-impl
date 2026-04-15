@@ -13,6 +13,7 @@ import passport from "passport";
 import { LocalStrategy } from "./infrastructure/passport/local.strategy";
 import "reflect-metadata";
 import "./application/profiles/user.profile";
+import "./application/profiles/file.profile";
 import {
   authLimiter,
   globalLimiter,

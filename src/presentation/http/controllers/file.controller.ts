@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { FileService } from "../../../application/services/file.service";
 import { HttpStatus } from "../../../domain/errors/status-codes.enum";
 import { ListFilesOptions } from "../../../domain/interfaces";
+import { mapper } from "../../../config/mapper";
+import { File } from "../../../domain/entities/file";
+import { FileResponseDto } from "../../../application/dtos/file-response.dto";
 
 interface UploadRequest extends Request {
   file?: Express.Multer.File;
@@ -32,7 +35,8 @@ export class FileController {
         parentId,
       );
 
-      res.status(HttpStatus.Created).json(saved);
+      const response = mapper.map(saved, File, FileResponseDto);
+      res.status(HttpStatus.Created).json(response);
     } catch (error) {
       next(error);
     }
@@ -74,7 +78,11 @@ export class FileController {
       };
 
       const result = await this.fileService.listFiles(ownerId, opts);
-      res.status(HttpStatus.OK).json(result);
+      const response = mapper.mapArray(result.files, File, FileResponseDto);
+      res.status(HttpStatus.OK).json({
+        ...result,
+        files: response,
+      });
     } catch (error) {
       next(error);
     }
@@ -84,6 +92,7 @@ export class FileController {
     try {
       const ownerId = (req.user as any).id;
       await this.fileService.deleteFile(req.params.id, ownerId);
+
       res.status(HttpStatus.NoContent).send();
     } catch (error) {
       next(error);
@@ -94,19 +103,20 @@ export class FileController {
     try {
       const ownerId = (req.user as any).id;
       const file = await this.fileService.getFileById(req.params.id, ownerId);
-      res.status(HttpStatus.OK).json(file);
+      const response = mapper.map(file, File, FileResponseDto);
+      res.status(HttpStatus.OK).json(response);
     } catch (error) {
       next(error);
     }
   }
 
-  async update(req: Request, res: Response, next: NextFunction) {
+  async update(req: Request<FileParams>, res: Response, next: NextFunction) {
     try {
       const ownerId = (req.user as any).id;
       const { name, parentId } = req.body;
 
       const updated = await this.fileService.updateFile(
-        req.params.id as string,
+        req.params.id,
         ownerId,
         {
           name,
@@ -114,7 +124,8 @@ export class FileController {
         },
       );
 
-      res.status(HttpStatus.OK).json(updated);
+      const response = mapper.map(updated, File, FileResponseDto);
+      res.status(HttpStatus.OK).json(response);
     } catch (error) {
       next(error);
     }
