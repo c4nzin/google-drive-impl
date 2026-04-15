@@ -16,6 +16,7 @@ import { FileRepository } from "../infrastructure/persistence/repositories/file.
 import { FileController } from "../presentation/http/controllers/file.controller";
 import { FileRoutes } from "../presentation/http/routes/file.routes";
 import { S3StorageService } from "../infrastructure/storage/s3-storage.service";
+import { KeyvCacheService } from "../infrastructure/cache/keyv-cache.service";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -47,6 +48,8 @@ container.register({
   fileService: asClass(FileService).singleton(),
   fileController: asClass(FileController).scoped(),
   fileRoutes: asClass(FileRoutes).scoped(),
+
+  cacheService: asClass(KeyvCacheService).singleton(),
 });
 
 export default container;

@@ -4,11 +4,13 @@ import { IFileRepository } from "../../domain/interfaces/file-repository.interfa
 import { IStorageService } from "../../domain/interfaces/storage-service.interface";
 import { File } from "../../domain/entities/file";
 import { NotFoundError } from "../../domain/errors/app-error";
+import { ICacheService } from "../../domain/interfaces";
 
 export class FileService {
   constructor(
     private fileRepository: IFileRepository,
     private storageService: IStorageService,
+    private cacheService: ICacheService,
   ) {}
 
   async uploadFile(
@@ -31,7 +33,11 @@ export class FileService {
     file.size = size;
     file.storageKey = storageKey;
 
-    return this.fileRepository.save(file);
+    const saved = await this.fileRepository.save(file);
+
+    await this.cacheService.delete(`file-list_${ownerId}`);
+
+    return saved;
   }
 
   async downloadFile(fileId: string, ownerId: string) {
@@ -40,6 +46,8 @@ export class FileService {
       throw new NotFoundError("File not found or access denied");
     }
 
+    //await this.cacheService.set(`file_${file.id}`, file, 3600);
+
     return {
       file,
       stream: await this.storageService.getFileStream(file.storageKey),
@@ -47,6 +55,18 @@ export class FileService {
   }
 
   async listFiles(ownerId: string) {
-    return this.fileRepository.findByOwner(ownerId);
+    const cacheKey = `file-list_${ownerId}`;
+
+    const cached = await this.cacheService.get<File[]>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const files = await this.fileRepository.findByOwner(ownerId);
+
+    await this.cacheService.set(cacheKey, files, 3600);
+
+    return files;
   }
 }
