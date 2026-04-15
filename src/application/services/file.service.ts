@@ -1,6 +1,10 @@
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import { IFileRepository } from "../../domain/interfaces/file-repository.interface";
+import {
+  IFileRepository,
+  ListFilesOptions,
+  ListFilesResult,
+} from "../../domain/interfaces/file-repository.interface";
 import { IStorageService } from "../../domain/interfaces/storage-service.interface";
 import { File } from "../../domain/entities/file";
 import { NotFoundError } from "../../domain/errors/app-error";
@@ -54,20 +58,35 @@ export class FileService {
     };
   }
 
-  async listFiles(ownerId: string) {
-    const cacheKey = `file-list_${ownerId}`;
+  async listFiles(ownerId: string, options?: ListFilesOptions) {
+    const page = Math.max(1, options?.page || 1);
+    const limit = Math.max(1, options?.limit || 20);
+    const parentId = options?.parentId!;
+    const search = options?.search?.trim();
 
-    const cached = await this.cacheService.get<File[]>(cacheKey);
+    const opts: ListFilesOptions = {
+      page,
+      limit,
+      parentId,
+      search,
+    };
+
+    const cacheKey = `file-list_${ownerId}_${page}_${limit}_${parentId ?? ""}_${search ?? ""}`;
+
+    const cached = await this.cacheService.get<ListFilesResult>(cacheKey);
 
     if (cached) {
       return cached;
     }
 
-    const files = await this.fileRepository.findByOwner(ownerId);
+    const result = await this.fileRepository.findByIdOwnerWithFilter(
+      ownerId,
+      opts,
+    );
 
-    await this.cacheService.set(cacheKey, files, 3600);
+    await this.cacheService.set(cacheKey, result, 3600);
 
-    return files;
+    return result;
   }
 
   async deleteFile(fileId: string, ownerId: string) {

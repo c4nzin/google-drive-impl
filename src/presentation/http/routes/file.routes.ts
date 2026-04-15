@@ -45,8 +45,7 @@ export class FileRoutes {
       "/:id",
       passport.authenticate("jwt", { session: false }),
       validateRequest(fileUpdateSchema),
-      (req: Request, res: Response, next: NextFunction) =>
-        this.fileController.update(req, res, next),
+      (req, res, next) => this.fileController.update(req, res, next),
     );
 
     this.router.get(

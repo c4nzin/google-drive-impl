@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { FileService } from "../../../application/services/file.service";
 import { HttpStatus } from "../../../domain/errors/status-codes.enum";
+import { ListFilesOptions } from "../../../domain/interfaces";
 
 interface UploadRequest extends Request {
   file?: Express.Multer.File;
@@ -60,8 +61,20 @@ export class FileController {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const ownerId = (req.user as any).id;
-      const files = await this.fileService.listFiles(ownerId);
-      res.status(HttpStatus.OK).json(files);
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
+      const parentId = req.query.parentId as string | undefined;
+      const search = req.query.search as string | undefined;
+
+      const opts: ListFilesOptions = {
+        page,
+        limit,
+        parentId,
+        search,
+      };
+
+      const result = await this.fileService.listFiles(ownerId, opts);
+      res.status(HttpStatus.OK).json(result);
     } catch (error) {
       next(error);
     }
