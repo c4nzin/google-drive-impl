@@ -87,13 +87,13 @@ export class FileController {
     }
   }
 
-  async update(req: Request<FileParams>, res: Response, next: NextFunction) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const ownerId = (req.user as any).id;
       const { name, parentId } = req.body;
 
       const updated = await this.fileService.updateFile(
-        req.params.id,
+        req.params.id as string,
         ownerId,
         {
           name,

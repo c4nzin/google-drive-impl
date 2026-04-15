@@ -1,7 +1,9 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import passport from "passport";
 import multer from "multer";
 import { FileController } from "../controllers/file.controller";
+import { validateRequest } from "../middlewares/validate-request";
+import { fileUpdateSchema } from "../schemas/file.schema";
 
 const upload = multer({ dest: "./tmp/uploads" });
 
@@ -42,7 +44,9 @@ export class FileRoutes {
     this.router.put(
       "/:id",
       passport.authenticate("jwt", { session: false }),
-      (req, res, next) => this.fileController.update(req, res, next),
+      validateRequest(fileUpdateSchema),
+      (req: Request, res: Response, next: NextFunction) =>
+        this.fileController.update(req, res, next),
     );
 
     this.router.get(
