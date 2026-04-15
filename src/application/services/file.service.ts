@@ -69,4 +69,42 @@ export class FileService {
 
     return files;
   }
+
+  async deleteFile(fileId: string, ownerId: string) {
+    const file = await this.fileRepository.findById(fileId);
+
+    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+      throw new NotFoundError("File not found or access denied");
+    }
+
+    await this.storageService.deleteFile(file.storageKey);
+    await this.fileRepository.delete(fileId);
+
+    await this.cacheService.delete(`file-list_${ownerId}`);
+    await this.cacheService.delete(`file_${fileId}`);
+  }
+
+  async getFileById(fileId: string, ownerId: string) {
+    const file = await this.fileRepository.findById(fileId);
+
+    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+      throw new NotFoundError("File not found or access denied");
+    }
+
+    return file;
+  }
+
+  async updateFile(fileId: string, ownerId: string, data: Partial<File>) {
+    const file = await this.fileRepository.findById(fileId);
+
+    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+      throw new NotFoundError("File not found or access denied");
+    }
+
+    const updatedFile = await this.fileRepository.update(fileId, data);
+
+    await this.cacheService.delete(`file-list_${ownerId}`);
+    await this.cacheService.delete(`file_${fileId}`);
+    return updatedFile;
+  }
 }

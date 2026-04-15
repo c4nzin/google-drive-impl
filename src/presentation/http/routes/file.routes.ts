@@ -32,5 +32,23 @@ export class FileRoutes {
       passport.authenticate("jwt", { session: false }),
       (req, res, next) => this.fileController.download(req, res, next),
     );
+
+    this.router.delete(
+      "/:id",
+      passport.authenticate("jwt", { session: false }),
+      (req, res, next) => this.fileController.delete(req, res, next),
+    );
+
+    this.router.put(
+      "/:id",
+      passport.authenticate("jwt", { session: false }),
+      (req, res, next) => this.fileController.update(req, res, next),
+    );
+
+    this.router.get(
+      "/:id",
+      passport.authenticate("jwt", { session: false }),
+      (req, res, next) => this.fileController.show(req, res, next),
+    );
   }
 }

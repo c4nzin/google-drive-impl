@@ -66,4 +66,44 @@ export class FileController {
       next(error);
     }
   }
+
+  async delete(req: Request<FileParams>, res: Response, next: NextFunction) {
+    try {
+      const owenrId = (req.user as any).id;
+      await this.fileService.deleteFile(req.params.id, owenrId);
+      res.status(HttpStatus.NoContent).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async show(req: Request<FileParams>, res: Response, next: NextFunction) {
+    try {
+      const ownerId = (req.user as any).id;
+      const file = await this.fileService.getFileById(req.params.id, ownerId);
+      res.status(HttpStatus.OK).json(file);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async update(req: Request<FileParams>, res: Response, next: NextFunction) {
+    try {
+      const ownerId = (req.user as any).id;
+      const { name, parentId } = req.body;
+
+      const updated = await this.fileService.updateFile(
+        req.params.id,
+        ownerId,
+        {
+          name,
+          parentId,
+        },
+      );
+
+      res.status(HttpStatus.OK).json(updated);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

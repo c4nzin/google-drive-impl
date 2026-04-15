@@ -1,11 +1,16 @@
 import { ICacheService } from "../../domain/interfaces/cache-service.interface";
 import Keyv from "keyv";
 import KeyvMemcache from "@keyv/memcache";
+import { env } from "../../config/env";
 
 export class KeyvCacheService implements ICacheService {
-  private client = new Keyv({ store: new KeyvMemcache() });
+  private client = new Keyv();
 
-  constructor() {}
+  constructor() {
+    this.client = env.MEMCACHED_URI
+      ? new Keyv({ store: new KeyvMemcache(env.MEMCACHED_URI) })
+      : new Keyv();
+  }
 
   async get<T>(key: string): Promise<T | undefined> {
     return this.client.get<T>(key);

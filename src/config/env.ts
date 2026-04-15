@@ -23,6 +23,7 @@ const EnvSchema = z.object({
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
   S3_ENDPOINT: z.string().optional(),
+  MEMCACHED_URI: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);
