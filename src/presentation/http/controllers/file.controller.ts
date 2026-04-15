@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { FileService } from "../../../application/services/file.service";
+import { ValidationError } from "../../../domain/errors/app-error";
 import { HttpStatus } from "../../../domain/errors/status-codes.enum";
 import { ListFilesOptions } from "../../../domain/interfaces";
 import { mapper } from "../../../config/mapper";
@@ -19,9 +20,12 @@ export class FileController {
 
   async upload(req: UploadRequest, res: Response, next: NextFunction) {
     try {
-      const { parentId } = req.body;
+      const { parentId, name } = req.body as {
+        parentId?: string;
+        name?: string;
+      };
       if (!req.file) {
-        throw new Error("No file uploaded");
+        throw new ValidationError("No file uploaded");
       }
       const file = req.file;
       const ownerId = (req.user as any).id;
@@ -33,6 +37,7 @@ export class FileController {
         file.mimetype,
         file.size,
         parentId,
+        name,
       );
 
       const response = mapper.map(saved, File, FileResponseDto);

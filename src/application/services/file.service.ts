@@ -24,6 +24,7 @@ export class FileService {
     mimeType: string,
     size: number,
     parentId?: string,
+    displayName?: string,
   ): Promise<File> {
     const storageKey = `${ownerId}/${uuidv4()}${path.extname(originalName)}`;
 
@@ -32,14 +33,14 @@ export class FileService {
     const file = new File();
     file.ownerId = ownerId;
     file.parentId = parentId;
-    file.name = originalName;
     file.mimeType = mimeType;
     file.size = size;
     file.storageKey = storageKey;
+    file.name = displayName ?? originalName;
 
     const saved = await this.fileRepository.save(file);
 
-    await this.cacheService.delete(`file-list_${ownerId}`);
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
 
     return saved;
   }
@@ -71,7 +72,10 @@ export class FileService {
       search,
     };
 
-    const cacheKey = `file-list_${ownerId}_${page}_${limit}_${parentId ?? ""}_${search ?? ""}`;
+    const version =
+      (await this.cacheService.get<number>(`file-list-version_${ownerId}`)) ??
+      0;
+    const cacheKey = `file-list_${ownerId}_${version}_${page}_${limit}_${parentId ?? ""}_${search ?? ""}`;
 
     const cached = await this.cacheService.get<ListFilesResult>(cacheKey);
 
@@ -99,7 +103,7 @@ export class FileService {
     await this.storageService.deleteFile(file.storageKey);
     await this.fileRepository.delete(fileId);
 
-    await this.cacheService.delete(`file-list_${ownerId}`);
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
     await this.cacheService.delete(`file_${fileId}`);
   }
 
@@ -122,7 +126,7 @@ export class FileService {
 
     const updatedFile = await this.fileRepository.update(fileId, data);
 
-    await this.cacheService.delete(`file-list_${ownerId}`);
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
     await this.cacheService.delete(`file_${fileId}`);
     return updatedFile;
   }

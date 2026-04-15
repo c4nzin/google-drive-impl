@@ -3,7 +3,8 @@ import passport from "passport";
 import multer from "multer";
 import { FileController } from "../controllers/file.controller";
 import { validateRequest } from "../middlewares/validate-request";
-import { fileUpdateSchema } from "../schemas/file.schema";
+import { fileUpdateSchema, fileUploadSchema } from "../schemas/file.schema";
+import { requireFile } from "../middlewares/require-file";
 
 const upload = multer({ dest: "./tmp/uploads" });
 
@@ -20,6 +21,8 @@ export class FileRoutes {
       "/upload",
       passport.authenticate("jwt", { session: false }),
       upload.single("file"),
+      validateRequest(fileUploadSchema),
+      requireFile,
       (req, res, next) => this.fileController.upload(req, res, next),
     );
 

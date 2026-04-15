@@ -1,6 +1,6 @@
-import { rateLimit } from "express-rate-limit";
+import { rateLimit, RateLimitRequestHandler } from "express-rate-limit";
 
-export const globalLimiter = rateLimit({
+export const globalLimiter: RateLimitRequestHandler = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 min
   limit: 100,
   standardHeaders: "draft-7",
@@ -11,7 +11,7 @@ export const globalLimiter = rateLimit({
   },
 });
 
-export const authLimiter = rateLimit({
+export const authLimiter: RateLimitRequestHandler = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minu
   limit: 10,
   standardHeaders: "draft-7",

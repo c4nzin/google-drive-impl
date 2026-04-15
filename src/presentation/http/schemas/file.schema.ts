@@ -1,5 +1,11 @@
 import z from "zod";
 
+export const fileUploadSchema = z.object({
+  parentId: z.string().optional(),
+  name: z.string().trim().min(1).max(255).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
+});
+
 export const fileUpdateSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   parentId: z.string().optional(),
@@ -24,5 +30,6 @@ export const fileListQuerySchema = z.object({
   search: z.string().optional(),
 });
 
+export type FileUploadSchema = z.infer<typeof fileUploadSchema>;
 export type FileUpdateSchema = z.infer<typeof fileUpdateSchema>;
 export type FileListQuerySchema = z.infer<typeof fileListQuerySchema>;
