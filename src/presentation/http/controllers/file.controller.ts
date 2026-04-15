@@ -69,8 +69,8 @@ export class FileController {
 
   async delete(req: Request<FileParams>, res: Response, next: NextFunction) {
     try {
-      const owenrId = (req.user as any).id;
-      await this.fileService.deleteFile(req.params.id, owenrId);
+      const ownerId = (req.user as any).id;
+      await this.fileService.deleteFile(req.params.id, ownerId);
       res.status(HttpStatus.NoContent).send();
     } catch (error) {
       next(error);
