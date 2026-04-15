@@ -10,8 +10,19 @@ import { env } from "./env";
 import { LocalStrategy } from "../infrastructure/passport/local.strategy";
 import { JwtStrategy } from "../infrastructure/passport/jwt-strategy";
 import { UserRepository } from "../infrastructure/persistence/repositories/user.repository";
+import { LocalStorageService } from "../infrastructure/storage/local-storage.service";
+import { FileService } from "../application/services/file.service";
+import { FileRepository } from "../infrastructure/persistence/repositories/file.repository";
+import { FileController } from "../presentation/http/controllers/file.controller";
+import { FileRoutes } from "../presentation/http/routes/file.routes";
+import { S3StorageService } from "../infrastructure/storage/s3-storage.service";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
+
+const storageServiceRegistration =
+  env.STORAGE_PROVIDER === "s3"
+    ? asClass(S3StorageService).singleton()
+    : asClass(LocalStorageService).singleton();
 
 container.register({
   userModel: asValue(UserModel),
@@ -31,6 +42,11 @@ container.register({
   authRoutes: asClass(AuthRoutes).scoped(),
   localStrategy: asClass(LocalStrategy).singleton(),
   jwtStrategy: asClass(JwtStrategy).singleton(),
+  storageService: storageServiceRegistration,
+  fileRepository: asClass(FileRepository).singleton(),
+  fileService: asClass(FileService).singleton(),
+  fileController: asClass(FileController).scoped(),
+  fileRoutes: asClass(FileRoutes).scoped(),
 });
 
 export default container;

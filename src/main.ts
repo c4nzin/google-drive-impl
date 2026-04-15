@@ -20,6 +20,7 @@ import {
 import helmet from "helmet";
 import { buildSwagger } from "./presentation/http/swagger/swagger.builder";
 import { JwtStrategy } from "./infrastructure/passport/jwt-strategy";
+import { FileRoutes } from "./presentation/http/routes/file.routes";
 
 async function bootstrap(): Promise<void> {
   const app = express();
@@ -75,8 +76,8 @@ async function bootstrap(): Promise<void> {
     req.container.resolve<AuthRoutes>("authRoutes").router(req, res, next);
   });
 
-  app.get("/", (req: Request, res: Response) => {
-    res.send("Hello, World!");
+  app.use("/files", (req, res, next) => {
+    req.container.resolve<FileRoutes>("fileRoutes").router(req, res, next);
   });
 
   app.get("/health", async (req: Request, res: Response) => {
