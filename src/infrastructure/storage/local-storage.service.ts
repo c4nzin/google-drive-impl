@@ -15,7 +15,7 @@ export class LocalStorageService implements IStorageService {
     return desinationKey;
   }
 
-  async getFileStream(key: string): Promise<Readable> {
+  getFileStream(key: string): Readable {
     const filePath = path.join(this.root, key);
     return createReadStream(filePath);
   }

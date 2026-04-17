@@ -4,7 +4,6 @@ import {
   StrategyOptionsWithoutRequest,
 } from "passport-jwt";
 import { env } from "../../config/env";
-import { AwilixContainer } from "awilix";
 import { UserService } from "../../application/services/user.service";
 
 const strategyOptions: StrategyOptionsWithoutRequest = {
