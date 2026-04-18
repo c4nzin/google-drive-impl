@@ -29,6 +29,7 @@ const EnvSchema = z.object({
   KAFKA_USER_CREATED_TOPIC: z.string().optional(),
   KAFKA_GROUP_ID: z.string().optional(),
   KAFKA_DLQ_TOPIC: z.string().optional(),
+  KAFKA_CONSUMER_GROUP_ID: z.string().default("googledrive-consumer-group"),
 });
 
 export const env = EnvSchema.parse(process.env);

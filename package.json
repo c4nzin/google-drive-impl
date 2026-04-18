@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/main.ts",
     "wait:db": "ts-node src/scripts/wait-for-mongo.ts",
-    "outbox:worker": "ts-node src/scripts/outbox-worker.ts"
+    "outbox:worker": "ts-node src/scripts/outbox-worker.ts",
+    "kafka:consumer": "ts-node src/scripts/user-created-consumer.ts"
   },
   "keywords": [],
   "author": "",

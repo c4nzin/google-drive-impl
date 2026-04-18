@@ -67,7 +67,7 @@ export class AuthService {
         [
           {
             eventId: event.eventId,
-            topic: env.KAFKA_USER_CREATED_TOPIC || "user-created",
+            topic: env.KAFKA_USER_CREATED_TOPIC || "user.created",
             key: saved.id!,
             payload: event,
             status: "pending",

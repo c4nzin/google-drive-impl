@@ -1,4 +1,26 @@
 services:
+  kafka-consumer:
+    image: node:20
+    container_name: googledrive_kafka_consumer
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app:cached
+      - node_modules_consumer:/usr/src/app/node_modules
+    environment:
+      NODE_ENV: development
+      DATABASE_URI: "mongodb://mongo:27017/googledrive?replicaSet=rs0"
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_CLIENT_ID: "googledrive-kafka-consumer"
+      KAFKA_USER_CREATED_TOPIC: "user.created"
+      KAFKA_CONSUMER_GROUP_ID: "googledrive-consumer-group"
+    command: >
+      sh -c "corepack enable &&
+             corepack pnpm install &&
+             corepack pnpm run wait:db &&
+             corepack pnpm run kafka:consumer"
+    depends_on:
+      - mongo
+      - kafka
   mongo:
     image: mongo:7.0
     container_name: googledrive_mongo
@@ -126,3 +148,4 @@ volumes:
   mongo-data:
   node_modules_app:
   node_modules_outbox:
+  node_modules_consumer:
