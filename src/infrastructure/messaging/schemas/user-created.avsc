@@ -1,0 +1,26 @@
+{
+  "namespace": "com.drive.events.user",
+  "type": "record",
+  "name": "UserCreated",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "type", "type": "string" },
+    { "name": "version", "type": "string" },
+    { "name": "timestamp", "type": "long" },
+    {
+      "name": "data",
+      "type": {
+        "type": "record",
+        "name": "UserData",
+        "fields": [
+          { "name": "id", "type": "string" },
+          { "name": "email", "type": "string" },
+          { "name": "username", "type": ["null", "string"], "default": null },
+          { "name": "firstName", "type": ["null", "string"], "default": null },
+          { "name": "lastName", "type": ["null", "string"], "default": null },
+          { "name": "createdAt", "type": "long" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: googledrive_mongo
+    hostname: mongo
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0"]
+    extra_hosts:
+      - "mongo:127.0.0.1"
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'rs.status().ok' | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: googledrive_zookeeper
+    restart: unless-stopped
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+      - "2181:2181"
+
+  outbox-worker:
+    image: node:20
+    container_name: googledrive_outbox_worker
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app:cached
+      - node_modules_outbox:/usr/src/app/node_modules
+    environment:
+      NODE_ENV: development
+      DATABASE_URI: "mongodb://mongo:27017/googledrive?replicaSet=rs0"
+      JWT_SECRET: "supersecretsupersecretsupersecretsupersecretsupersecret"
+      JWT_EXPIRES_IN: "7d"
+      JWT_REFRESH_SECRET: "supersecretsupersecretsupersecretsupersecretsupersecret"
+      JWT_REFRESH_EXPIRES_IN: "30d"
+      STORAGE_PROVIDER: "local"
+      STORAGE_ROOT: "/usr/src/app/storage"
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_CLIENT_ID: "googledrive-outbox-worker"
+      KAFKA_USER_CREATED_TOPIC: "user.created"
+      KAFKA_GROUP_ID: "outbox-worker-group"
+      KAFKA_DLQ_TOPIC: "user.created.dlq"
+    command: >
+      sh -c "corepack enable &&
+             corepack pnpm install &&
+             corepack pnpm run wait:db &&
+             corepack pnpm run outbox:worker"
+    depends_on:
+      - mongo
+      - kafka
+      - memcached
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: googledrive_kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+
+  memcached:
+    image: memcached:1.6
+    container_name: googledrive_memcached
+    restart: unless-stopped
+    ports:
+      - "11211:11211"
+
+  app:
+    image: node:20
+    container_name: googledrive_app
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app:cached
+      - node_modules_app:/usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URI: "mongodb://mongo:27017/googledrive?replicaSet=rs0"
+      JWT_SECRET: "supersecretsupersecretsupersecretsupersecretsupersecret"
+      JWT_EXPIRES_IN: "7d"
+      JWT_REFRESH_SECRET: "supersecretsupersecretsupersecretsupersecretsupersecret"
+      JWT_REFRESH_EXPIRES_IN: "30d"
+      STORAGE_PROVIDER: "local"
+      STORAGE_ROOT: "/usr/src/app/storage"
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_CLIENT_ID: "googledrive-app"
+      KAFKA_USER_CREATED_TOPIC: "user.created"
+      KAFKA_GROUP_ID: "user-service-group"
+      KAFKA_DLQ_TOPIC: "user.created.dlq"
+      MEMCACHED_URI: "memcached://memcached:11211"
+    command: >
+      sh -c "corepack enable &&
+             corepack pnpm install &&
+             corepack pnpm run wait:db &&
+             corepack pnpm run start:dev"
+    depends_on:
+      - mongo
+      - kafka
+      - memcached
+
+volumes:
+  mongo-data:
+  node_modules_app:
+  node_modules_outbox:

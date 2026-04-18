@@ -1,0 +1,24 @@
+NODE_ENV=development
+LOG_LEVEL=debug
+PORT=3000
+DATABASE_URI=mongodb://localhost:27017/myapp
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key
+JWT_REFRESH_EXPIRES_IN=30d
+STORAGE_ROOT=./storage
+STORAGE_PROVIDER=local
+S3_BUCKET_NAME=
+S3_REGION=
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=
+S3_ENDPOINT=
+MEMCACHED_URI=memcached://localhost:11211
+
+
+
+
+# Kafka related
+KAFKA_BROKERS=localhost:9092
+KAFKA_CLIENT_ID=myappid
+KAFKA_USER_CREATED_TOPIC=user-created

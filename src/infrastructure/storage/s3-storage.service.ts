@@ -1,4 +1,4 @@
-import { Readable } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import { IStorageService } from "../../domain/interfaces";
 import {
   DeleteObjectCommand,
@@ -48,19 +48,31 @@ export class S3StorageService implements IStorageService {
     return desinationKey;
   }
 
-  async getFileStream(key: string): Promise<Readable> {
-    const response = await this.client.send(
-      new GetObjectCommand({
-        Bucket: env.S3_BUCKET_NAME,
-        Key: key,
-      }),
-    );
+  getFileStream(key: string): Readable {
+    const passThrough = new PassThrough();
 
-    if (!response.Body) {
-      throw new NotFoundError(`File with key ${key} not found in S3`);
-    }
+    this.client
+      .send(
+        new GetObjectCommand({
+          Bucket: env.S3_BUCKET_NAME,
+          Key: key,
+        }),
+      )
+      .then((response) => {
+        if (!response.Body) {
+          passThrough.destroy(new NotFoundError("File not found in S3"));
+          return;
+        }
 
-    return response.Body as Readable;
+        const body = response.Body as Readable;
+        body.on("error", (err) => passThrough.destroy(err));
+        body.pipe(passThrough);
+      })
+      .catch((err) => {
+        passThrough.destroy(err as Error);
+      });
+
+    return passThrough;
   }
 
   async deleteFile(key: string): Promise<void> {

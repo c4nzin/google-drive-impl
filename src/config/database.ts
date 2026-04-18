@@ -2,23 +2,53 @@ import mongoose from "mongoose";
 import { env } from "./env";
 import { DatabaseConnectionError } from "../domain/errors/app-error";
 
+const MAX_DATABASE_CONNECT_ATTEMPTS = 12;
+const DATABASE_CONNECT_RETRY_DELAY_MS = 5000;
+
 let isConnected: boolean = false;
-//add pino logger here!!!
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function connectDatabase(): Promise<typeof mongoose> {
-  try {
-    if (isConnected) {
-      return mongoose;
-    }
-
-    await mongoose.connect(env.DATABASE_URI);
-
-    isConnected = true;
-
+  if (isConnected) {
     return mongoose;
-  } catch (error) {
-    console.log("Database connection error:", error);
-    throw new DatabaseConnectionError("Failed to connect to the database");
   }
+
+  let attempt = 0;
+  let lastError: unknown;
+
+  while (attempt < MAX_DATABASE_CONNECT_ATTEMPTS) {
+    attempt += 1;
+
+    try {
+      await mongoose.connect(env.DATABASE_URI, {
+        autoIndex: false,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+      });
+
+      isConnected = true;
+      return mongoose;
+    } catch (error) {
+      lastError = error;
+
+      console.warn(
+        `Database connection attempt ${attempt} failed. Retrying in ${DATABASE_CONNECT_RETRY_DELAY_MS}ms...`,
+        error instanceof Error ? error.message : error,
+      );
+
+      if (attempt >= MAX_DATABASE_CONNECT_ATTEMPTS) {
+        console.error("Final database connection failure:", error);
+        break;
+      }
+
+      await sleep(DATABASE_CONNECT_RETRY_DELAY_MS);
+    }
+  }
+
+  throw new DatabaseConnectionError("Failed to connect to the database");
 }
 
 export function getDatabase() {
@@ -28,7 +58,7 @@ export function getDatabase() {
 }
 
 mongoose.connection.on("disconnected", () => {
-  console.log("Database disconnected");
+  console.warn("Database disconnected");
 });
 
 mongoose.connection.on("error", (err) => {

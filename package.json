@@ -6,7 +6,9 @@
   "scripts": {
     "start:dev": "ts-node src/main.ts",
     "build": "tsc",
-    "start": "node dist/main.ts"
+    "start": "node dist/main.ts",
+    "wait:db": "ts-node src/scripts/wait-for-mongo.ts",
+    "outbox:worker": "ts-node src/scripts/outbox-worker.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,11 +19,7 @@
     "@automapper/core": "^8.8.1",
     "@aws-sdk/client-s3": "^3.1030.0",
     "@keyv/memcache": "^2.0.2",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.5.2",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.8",
+    "avsc": "^5.7.9",
     "awilix": "^13.0.3",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
@@ -32,11 +30,11 @@
     "global": "^4.4.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "kafkajs": "^2.2.4",
     "keyv": "^5.6.0",
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
-    "node": "^25.9.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -58,6 +56,12 @@
     "@types/multer": "^2.1.0",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
-    "@types/passport-local": "^1.0.38"
+    "@types/passport-local": "^1.0.38",
+    "@types/uuid": "^11.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8"
   }
 }

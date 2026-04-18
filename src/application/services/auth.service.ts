@@ -6,7 +6,12 @@ import {
 } from "../../domain/errors/app-error";
 import jwt from "jsonwebtoken";
 import * as bcrypt from "bcrypt";
-
+import { buildUserCreatedEvent } from "../dtos/user-created.event";
+import { IEventProducer } from "../../domain/interfaces/event-producer.interface";
+import { env } from "../../config/env";
+import Logger from "../../infrastructure/logger";
+import mongoose from "mongoose";
+import { OutboxModel } from "../../infrastructure/persistence/schemas/outbox.schema";
 export class AuthService {
   constructor(
     private userRepository: IUserRepository,
@@ -14,6 +19,7 @@ export class AuthService {
     private jwtExpiresIn: string,
     private jwtRefreshSecret: string,
     private jwtRefreshExpiresIn: string,
+    private eventProducer: IEventProducer,
   ) {}
 
   async login(email: string, password: string): Promise<User | null> {
@@ -35,13 +41,49 @@ export class AuthService {
   }
 
   async register(data: User): Promise<User> {
-    const existing = await this.userRepository.findByEmail(data.email);
+    const session = await mongoose.startSession();
 
-    if (existing) {
-      throw new ConflictError(`User with email ${data.email} already exists`);
+    session.startTransaction();
+
+    try {
+      const existingUser = await this.userRepository.findByEmail(data.email);
+
+      if (existingUser) {
+        throw new ConflictError("Email already in use");
+      }
+
+      const saved = await this.userRepository.save(data, { session });
+
+      const event = buildUserCreatedEvent({
+        id: saved.id!,
+        email: saved.email,
+        username: saved.username ?? null,
+        firstName: saved.firstName ?? null,
+        lastName: saved.lastName ?? null,
+        createdAt: saved.createdAt ?? new Date(),
+      });
+
+      await OutboxModel.create(
+        [
+          {
+            eventId: event.eventId,
+            topic: env.KAFKA_USER_CREATED_TOPIC || "user-created",
+            key: saved.id!,
+            payload: event,
+            status: "pending",
+          },
+        ],
+        { session },
+      );
+
+      await session.commitTransaction();
+      return saved;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-
-    return this.userRepository.save(data);
   }
 
   async logout(refreshToken: string) {

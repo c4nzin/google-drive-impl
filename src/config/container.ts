@@ -17,6 +17,7 @@ import { FileController } from "../presentation/http/controllers/file.controller
 import { FileRoutes } from "../presentation/http/routes/file.routes";
 import { S3StorageService } from "../infrastructure/storage/s3-storage.service";
 import { KeyvCacheService } from "../infrastructure/cache/keyv-cache.service";
+import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -50,6 +51,9 @@ container.register({
   fileRoutes: asClass(FileRoutes).scoped(),
 
   cacheService: asClass(KeyvCacheService).singleton(),
+
+  //kafka
+  eventProducer: asClass(KafkaProducer).singleton(),
 });
 
 export default container;

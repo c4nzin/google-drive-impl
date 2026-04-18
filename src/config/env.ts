@@ -24,6 +24,11 @@ const EnvSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
   S3_ENDPOINT: z.string().optional(),
   MEMCACHED_URI: z.string().optional(),
+  KAFKA_BROKERS: z.string().default("localhost:9092"),
+  KAFKA_CLIENT_ID: z.string().optional(),
+  KAFKA_USER_CREATED_TOPIC: z.string().optional(),
+  KAFKA_GROUP_ID: z.string().optional(),
+  KAFKA_DLQ_TOPIC: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);

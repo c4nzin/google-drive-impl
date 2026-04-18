@@ -22,6 +22,8 @@ import helmet from "helmet";
 import { buildSwagger } from "./presentation/http/swagger/swagger.builder";
 import { JwtStrategy } from "./infrastructure/passport/jwt-strategy";
 import { FileRoutes } from "./presentation/http/routes/file.routes";
+import { asValue } from "awilix";
+import { createKafkaTopic } from "./create-kafka.topic";
 
 async function bootstrap(): Promise<void> {
   const app = express();
@@ -62,7 +64,18 @@ async function bootstrap(): Promise<void> {
 
   passport.use(container.resolve<LocalStrategy>("localStrategy"));
 
+  await createKafkaTopic();
   await connectDatabase();
+
+  try {
+    const kafkaProducer: any = container.resolve("eventProducer");
+    if (kafkaProducer && typeof kafkaProducer.connect === "function") {
+      await kafkaProducer.connect();
+      Logger.info("Connected to Kafka successfully");
+    }
+  } catch (error) {
+    Logger.warn(`Failed to connect to Kafka: ${(error as Error).message}`);
+  }
 
   app.use((req: Request, res: Response, next) => {
     req.container = container.createScope();

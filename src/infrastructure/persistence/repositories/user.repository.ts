@@ -31,7 +31,13 @@ export class UserRepository implements IUserRepository {
     return query.exec();
   }
 
-  async save(user: User): Promise<User> {
+  async save(user: User, options?: { session?: any }): Promise<User> {
+    if (options?.session) {
+      return this.userModel
+        .create([user], { session: options.session })
+        .then((docs) => docs[0]);
+    }
+
     return this.userModel.create(user);
   }
 
