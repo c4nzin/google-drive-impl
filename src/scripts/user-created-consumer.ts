@@ -4,10 +4,13 @@ import { KafkaConsumer } from "../infrastructure/messaging/kafka.consumer";
 import Logger from "../infrastructure/logger";
 import { env } from "../config/env";
 import { handleUserCreated } from "../application/handlers/user-created.handler";
+import container from "../config/container";
+import { EmailService } from "../application/services/email.service";
 
 async function start() {
   await connectDatabase();
 
+  const emailService = container.resolve<EmailService>("emailService");
   const consumer = new KafkaConsumer(env.KAFKA_CONSUMER_GROUP_ID);
   await consumer.connect();
   Logger.info("Kafka consumer connected");
@@ -22,7 +25,7 @@ async function start() {
     if (!event) return;
 
     if (event.type === "user.created") {
-      await handleUserCreated(event);
+      await handleUserCreated(event, emailService);
     } else {
       Logger.warn(`Unhandled event type: ${event.type}`);
     }

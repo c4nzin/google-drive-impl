@@ -21,4 +21,4 @@ MEMCACHED_URI=memcached://localhost:11211
 # Kafka related
 KAFKA_BROKERS=localhost:9092
 KAFKA_CLIENT_ID=myappid
-KAFKA_USER_CREATED_TOPIC=user-created
+KAFKA_USER_CREATED_TOPIC=user.created

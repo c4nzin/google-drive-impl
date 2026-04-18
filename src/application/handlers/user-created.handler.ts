@@ -1,5 +1,6 @@
 import Logger from "../../infrastructure/logger";
 import { UserCreatedEvent } from "../dtos/user-created.event";
+import { EmailService } from "../services/email.service";
 
 type IncomingUserCreatedEvent = Omit<UserCreatedEvent, "type"> & {
   type: string;
@@ -10,7 +11,10 @@ function formatCreatedAt(createdAt: string | Date) {
   return createdAt.toISOString();
 }
 
-export async function handleUserCreated(event: IncomingUserCreatedEvent) {
+export async function handleUserCreated(
+  event: IncomingUserCreatedEvent,
+  emailService: EmailService,
+) {
   if (event.type !== "user.created") {
     Logger.warn(
       {
@@ -35,4 +39,11 @@ export async function handleUserCreated(event: IncomingUserCreatedEvent) {
     },
     "processed user.created event",
   );
+
+  await emailService.sendUserWelcomeEmail({
+    email: data.email,
+    username: data.username,
+    firstName: data.firstName,
+    lastName: data.lastName,
+  });
 }

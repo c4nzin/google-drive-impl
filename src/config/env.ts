@@ -30,6 +30,10 @@ const EnvSchema = z.object({
   KAFKA_GROUP_ID: z.string().optional(),
   KAFKA_DLQ_TOPIC: z.string().optional(),
   KAFKA_CONSUMER_GROUP_ID: z.string().default("googledrive-consumer-group"),
+  SMTP_HOST: z.string().nonempty("SMTP_HOST is required"),
+  SMTP_PORT: z.string().nonempty("SMTP_PORT is required"),
+  SMTP_USER: z.string().nonempty("SMTP_USER is required"),
+  SMTP_PASSWORD: z.string().nonempty("SMTP_PASSWORD is required"),
 });
 
 export const env = EnvSchema.parse(process.env);

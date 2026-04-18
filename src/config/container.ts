@@ -18,6 +18,8 @@ import { FileRoutes } from "../presentation/http/routes/file.routes";
 import { S3StorageService } from "../infrastructure/storage/s3-storage.service";
 import { KeyvCacheService } from "../infrastructure/cache/keyv-cache.service";
 import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
+import { SmtpEmailService } from "../infrastructure/email/smtp-email.service";
+import { EmailService } from "../application/services/email.service";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -54,6 +56,10 @@ container.register({
 
   //kafka
   eventProducer: asClass(KafkaProducer).singleton(),
+
+  //email relat.
+  emailProvider: asClass(SmtpEmailService).singleton(),
+  emailService: asClass(EmailService).singleton(),
 });
 
 export default container;
