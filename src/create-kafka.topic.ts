@@ -16,13 +16,21 @@ export async function createKafkaTopic() {
 
   const admin = kafka.admin();
 
+  const userCreatedTopic = env.KAFKA_USER_CREATED_TOPIC || "user.created";
+  const dlqTopic = env.KAFKA_DLQ_TOPIC || "user.created.dlq";
+
   for (let attempt = 1; attempt <= MAX_KAFKA_ADMIN_ATTEMPTS; attempt += 1) {
     try {
       await admin.connect();
       await admin.createTopics({
         topics: [
           {
-            topic: env.KAFKA_USER_CREATED_TOPIC || "user.created",
+            topic: userCreatedTopic,
+            numPartitions: 1,
+            replicationFactor: 1,
+          },
+          {
+            topic: dlqTopic,
             numPartitions: 1,
             replicationFactor: 1,
           },
