@@ -55,7 +55,7 @@ export class FileService {
 
     return {
       file,
-      stream: await this.storageService.getFileStream(file.storageKey),
+      stream: this.storageService.getFileStream(file.storageKey),
     };
   }
 

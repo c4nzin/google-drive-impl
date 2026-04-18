@@ -6,6 +6,7 @@ import { ListFilesOptions } from "../../../domain/interfaces";
 import { mapper } from "../../../config/mapper";
 import { File } from "../../../domain/entities/file";
 import { FileResponseDto } from "../../../application/dtos/file-response.dto";
+import Logger from "../../../infrastructure/logger";
 
 interface UploadRequest extends Request {
   file?: Express.Multer.File;
@@ -60,6 +61,16 @@ export class FileController {
         "Content-Disposition",
         `attachment; filename="${file.name}"`,
       );
+
+      //err case
+      stream.on("error", (err) => {
+        Logger.error(`Error streaming file : ${err.message}`);
+        res.status(HttpStatus.InternalServerError).end();
+      });
+
+      stream.on("close", () => {
+        stream.destroy();
+      });
 
       stream.pipe(res);
     } catch (error) {
