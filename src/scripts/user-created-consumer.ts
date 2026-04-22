@@ -6,12 +6,10 @@ import Logger from "../infrastructure/logger";
 import { env } from "../config/env";
 import container from "../config/container";
 import { handleUserCreated } from "../application/handlers/user-created.handler";
-import { EmailService } from "../application/services/email.service";
 
 async function start() {
   await connectDatabase();
 
-  const emailService = container.resolve<EmailService>("emailService");
   const consumer = new KafkaConsumer(env.KAFKA_CONSUMER_GROUP_ID);
   const producer = new KafkaProducer();
 
@@ -30,7 +28,7 @@ async function start() {
 
     if (event.type === "user.created") {
       try {
-        await handleUserCreated(event, emailService);
+        await handleUserCreated(event);
       } catch (err: any) {
         const dlqPayload = {
           originalEvent: event,

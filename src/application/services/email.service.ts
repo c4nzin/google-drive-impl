@@ -1,5 +1,7 @@
 import { IEmailService } from "../../domain/interfaces/email-service.interface";
 
+//add kafka + bull
+
 export class EmailService {
   constructor(private emailProvider: IEmailService) {}
 

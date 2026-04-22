@@ -35,6 +35,9 @@ const EnvSchema = z.object({
   SMTP_USER: z.string().nonempty("SMTP_USER is required"),
   SMTP_PASSWORD: z.string().nonempty("SMTP_PASSWORD is required"),
   KAFKA_FILE_UPLOADED_TOPIC: z.string().default("file.uploaded"),
+  REDIS_URL: z.string().nonempty("REDIS_URL is required"),
+  REDIS_MAX_RETRIES: z.number().default(5),
+  REDIS_RETRY_DELAY: z.number().default(2000),
 });
 
 export const env = EnvSchema.parse(process.env);

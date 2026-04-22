@@ -9,7 +9,9 @@
     "start": "node dist/main.ts",
     "wait:db": "ts-node src/scripts/wait-for-mongo.ts",
     "outbox:worker": "ts-node src/scripts/outbox-worker.ts",
-    "kafka:consumer": "ts-node src/scripts/user-created-consumer.ts"
+    "kafka:consumer": "ts-node src/scripts/user-created-consumer.ts",
+    "email:worker": "ts-node src/scripts/email-worker.ts",
+    "email:worker:prod": "node dist/scripts/email-worker.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +25,7 @@
     "avsc": "^5.7.9",
     "awilix": "^13.0.3",
     "bcrypt": "^6.0.0",
+    "bull": "^4.16.5",
     "class-transformer": "^0.5.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.1",
@@ -30,6 +33,7 @@
     "express-rate-limit": "^8.3.2",
     "global": "^4.4.0",
     "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "kafkajs": "^2.2.4",
     "keyv": "^5.6.0",

@@ -1,6 +1,9 @@
 import Logger from "../../infrastructure/logger";
+import {
+  emailQueue,
+  SendWelcomeEmailJobData,
+} from "../../infrastructure/queue/email.queue";
 import { UserCreatedEvent } from "../dtos/user-created.event";
-import { EmailService } from "../services/email.service";
 
 type IncomingUserCreatedEvent = Omit<UserCreatedEvent, "type"> & {
   type: string;
@@ -11,10 +14,7 @@ function formatCreatedAt(createdAt: string | Date) {
   return createdAt.toISOString();
 }
 
-export async function handleUserCreated(
-  event: IncomingUserCreatedEvent,
-  emailService: EmailService,
-) {
+export async function handleUserCreated(event: IncomingUserCreatedEvent) {
   if (event.type !== "user.created") {
     Logger.warn(
       {
@@ -40,10 +40,14 @@ export async function handleUserCreated(
     "processed user.created event",
   );
 
-  await emailService.sendUserWelcomeEmail({
+  const jobData: SendWelcomeEmailJobData = {
+    eventId: eventId,
+    userId: data.id,
     email: data.email,
-    username: data.username,
-    firstName: data.firstName,
-    lastName: data.lastName,
-  });
+    username: data.username ?? "",
+    firstName: data.firstName ?? null,
+    lastName: data.lastName ?? null,
+  };
+
+  await emailQueue.add("send-welcome-email", jobData);
 }

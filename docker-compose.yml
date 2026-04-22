@@ -13,6 +13,7 @@ services:
       KAFKA_CLIENT_ID: "googledrive-kafka-consumer"
       KAFKA_USER_CREATED_TOPIC: "user.created"
       KAFKA_CONSUMER_GROUP_ID: "googledrive-consumer-group"
+      REDIS_URL: "redis://redis:6379"
     command: >
       sh -c "corepack enable &&
              corepack pnpm install &&
@@ -109,6 +110,34 @@ services:
     ports:
       - "11211:11211"
 
+  redis:
+    image: redis:7-alpine
+    container_name: googledrive_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  email-worker:
+    image: node:20
+    container_name: googledrive_email_worker
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app:cached
+      - node_modules_email_worker:/usr/src/app/node_modules
+    environment:
+      NODE_ENV: development
+      REDIS_URL: "redis://redis:6379"
+      SMTP_HOST: "${SMTP_HOST:-smtp.example.com}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-user@example.com}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-password}"
+    command: >
+      sh -c "corepack enable &&
+             corepack pnpm install &&
+             corepack pnpm run email:worker"
+    depends_on:
+      - redis
+
   app:
     image: node:20
     container_name: googledrive_app
@@ -149,3 +178,4 @@ volumes:
   node_modules_app:
   node_modules_outbox:
   node_modules_consumer:
+  node_modules_email_worker:

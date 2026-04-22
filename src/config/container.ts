@@ -20,6 +20,7 @@ import { KeyvCacheService } from "../infrastructure/cache/keyv-cache.service";
 import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
 import { SmtpEmailService } from "../infrastructure/email/smtp-email.service";
 import { EmailService } from "../application/services/email.service";
+import { emailQueue } from "../infrastructure/queue/email.queue";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -57,9 +58,10 @@ container.register({
   //kafka
   eventProducer: asClass(KafkaProducer).singleton(),
 
-  //email relat.
+  //email related
   emailProvider: asClass(SmtpEmailService).singleton(),
   emailService: asClass(EmailService).singleton(),
+  emailQueue: asValue(emailQueue),
 });
 
 export default container;
