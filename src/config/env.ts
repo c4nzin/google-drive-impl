@@ -34,6 +34,7 @@ const EnvSchema = z.object({
   SMTP_PORT: z.string().nonempty("SMTP_PORT is required"),
   SMTP_USER: z.string().nonempty("SMTP_USER is required"),
   SMTP_PASSWORD: z.string().nonempty("SMTP_PASSWORD is required"),
+  KAFKA_FILE_UPLOADED_TOPIC: z.string().default("file.uploaded"),
 });
 
 export const env = EnvSchema.parse(process.env);

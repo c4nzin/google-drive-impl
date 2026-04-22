@@ -109,8 +109,10 @@ export class AuthService {
   }
 
   async createTokens(user: User) {
-    const accessToken = await this.generateAccessToken(user);
-    const refreshToken = await this.generateRefreshToken(user);
+    const [accessToken, refreshToken] = await Promise.all([
+      this.generateAccessToken(user),
+      this.generateRefreshToken(user),
+    ]);
 
     await this.userRepository.update(user.id!, { refreshToken });
 

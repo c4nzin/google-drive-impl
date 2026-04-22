@@ -34,6 +34,18 @@ export async function createKafkaTopic() {
             numPartitions: 1,
             replicationFactor: 1,
           },
+
+          //upload topics
+          {
+            topic: env.KAFKA_FILE_UPLOADED_TOPIC,
+            numPartitions: 1,
+            replicationFactor: 1,
+          },
+          {
+            topic: "file.uploaded.dlq", //get it from env later.
+            numPartitions: 1,
+            replicationFactor: 1,
+          },
         ],
         waitForLeaders: true,
       });

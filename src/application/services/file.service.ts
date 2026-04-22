@@ -9,6 +9,9 @@ import { IStorageService } from "../../domain/interfaces/storage-service.interfa
 import { File } from "../../domain/entities/file";
 import { NotFoundError } from "../../domain/errors/app-error";
 import { ICacheService } from "../../domain/interfaces";
+import { buildFileUploadedEvent } from "../dtos/file-uploaded.event";
+import { OutboxModel } from "../../infrastructure/persistence/schemas/outbox.schema";
+import { env } from "../../config/env";
 
 export class FileService {
   constructor(
@@ -39,6 +42,25 @@ export class FileService {
     file.name = displayName ?? originalName;
 
     const saved = await this.fileRepository.save(file);
+
+    const event = buildFileUploadedEvent({
+      id: saved.id!,
+      ownerId: saved.ownerId,
+      storageKey: saved.storageKey,
+      name: saved.name,
+      mimeType: saved.mimeType,
+      size: saved.size,
+      createdAt: saved.createdAt! ?? new Date(),
+    });
+
+    await OutboxModel.create({
+      eventId: event.eventId,
+      topic: env.KAFKA_FILE_UPLOADED_TOPIC || "file.uploaded",
+      key: saved.id!,
+      payload: event,
+      status: "pending",
+      attempts: 0,
+    });
 
     await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
 
