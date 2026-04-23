@@ -4,11 +4,13 @@ import KeyvMemcache from "@keyv/memcache";
 import { env } from "../../config/env";
 
 export class KeyvCacheService implements ICacheService {
-  private client = new Keyv();
+  private client: Keyv;
 
   constructor() {
     this.client = env.MEMCACHED_URI
-      ? new Keyv({ store: new KeyvMemcache(env.MEMCACHED_URI) })
+      ? new Keyv({
+          store: new KeyvMemcache(env.MEMCACHED_URI),
+        })
       : new Keyv();
   }
 

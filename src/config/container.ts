@@ -22,6 +22,9 @@ import { SmtpEmailService } from "../infrastructure/email/smtp-email.service";
 import { EmailService } from "../application/services/email.service";
 import { emailQueue } from "../infrastructure/queue/email.queue";
 import { BullQueue } from "../infrastructure/queue/bull.queue";
+import { RedisCacheService } from "../infrastructure/cache/redis-cache.service";
+import { MemoryCacheService } from "../infrastructure/cache/memory-cache.service";
+import { CacheConstructor } from "../infrastructure/cache/cache.constructor";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -29,6 +32,13 @@ const storageServiceRegistration =
   env.STORAGE_PROVIDER === "s3"
     ? asClass(S3StorageService).singleton()
     : asClass(LocalStorageService).singleton();
+
+const cacheImplementation: CacheConstructor =
+  env.CACHE_PROVIDER === "redis"
+    ? RedisCacheService
+    : env.CACHE_PROVIDER === "memory"
+      ? MemoryCacheService
+      : KeyvCacheService;
 
 container.register({
   userModel: asValue(UserModel),
@@ -54,7 +64,7 @@ container.register({
   fileController: asClass(FileController).scoped(),
   fileRoutes: asClass(FileRoutes).scoped(),
 
-  cacheService: asClass(KeyvCacheService).singleton(),
+  cacheService: asClass(cacheImplementation).singleton(),
 
   //kafka
   eventProducer: asClass(KafkaProducer).singleton(),
