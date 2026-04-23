@@ -21,6 +21,7 @@ import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
 import { SmtpEmailService } from "../infrastructure/email/smtp-email.service";
 import { EmailService } from "../application/services/email.service";
 import { emailQueue } from "../infrastructure/queue/email.queue";
+import { BullQueue } from "../infrastructure/queue/bull.queue";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -62,6 +63,7 @@ container.register({
   emailProvider: asClass(SmtpEmailService).singleton(),
   emailService: asClass(EmailService).singleton(),
   emailQueue: asValue(emailQueue),
+  queue: asClass(BullQueue).singleton(),
 });
 
 export default container;

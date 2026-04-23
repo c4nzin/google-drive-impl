@@ -6,6 +6,7 @@ import Logger from "../infrastructure/logger";
 import { env } from "../config/env";
 import container from "../config/container";
 import { handleUserCreated } from "../application/handlers/user-created.handler";
+import { IQueue } from "../domain/interfaces";
 
 async function start() {
   await connectDatabase();
@@ -22,13 +23,14 @@ async function start() {
 
   await consumer.subscribe(userCreatedTopic, true);
 
+  const queue = container.resolve<IQueue>("queue");
   await consumer.run(async (message) => {
     const event = consumer.deserialize(message);
     if (!event) return;
 
     if (event.type === "user.created") {
       try {
-        await handleUserCreated(event);
+        await handleUserCreated(event, queue);
       } catch (err: any) {
         const dlqPayload = {
           originalEvent: event,

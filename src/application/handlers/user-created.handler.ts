@@ -1,3 +1,4 @@
+import { IQueue } from "../../domain/interfaces";
 import Logger from "../../infrastructure/logger";
 import {
   emailQueue,
@@ -14,7 +15,10 @@ function formatCreatedAt(createdAt: string | Date) {
   return createdAt.toISOString();
 }
 
-export async function handleUserCreated(event: IncomingUserCreatedEvent) {
+export async function handleUserCreated(
+  event: IncomingUserCreatedEvent,
+  queue: IQueue,
+) {
   if (event.type !== "user.created") {
     Logger.warn(
       {
@@ -49,5 +53,5 @@ export async function handleUserCreated(event: IncomingUserCreatedEvent) {
     lastName: data.lastName ?? null,
   };
 
-  await emailQueue.add("send-welcome-email", jobData);
+  await queue.add("send-welcome-email", jobData);
 }
