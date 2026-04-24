@@ -24,4 +24,8 @@ export interface IFileRepository {
     ownerId: string,
     options?: ListFilesOptions,
   ): Promise<ListFilesResult>;
+  findByUserWithFilter(
+    userId: string,
+    options?: ListFilesOptions,
+  ): Promise<ListFilesResult>;
 }

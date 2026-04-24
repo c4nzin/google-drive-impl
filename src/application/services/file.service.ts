@@ -10,7 +10,10 @@ import { File } from "../../domain/entities/file";
 import { NotFoundError } from "../../domain/errors/app-error";
 import { ICacheService } from "../../domain/interfaces";
 import { buildFileUploadedEvent } from "../dtos/file-uploaded.event";
-import { OutboxModel } from "../../infrastructure/persistence/schemas/outbox.schema";
+import {
+  IOutboxRepository,
+  OutboxEvent,
+} from "../../domain/interfaces/outbox-repository.interface";
 import { env } from "../../config/env";
 
 export class FileService {
@@ -18,6 +21,7 @@ export class FileService {
     private fileRepository: IFileRepository,
     private storageService: IStorageService,
     private cacheService: ICacheService,
+    private outboxRepository: IOutboxRepository,
   ) {}
 
   async uploadFile(
@@ -53,14 +57,16 @@ export class FileService {
       createdAt: saved.createdAt! ?? new Date(),
     });
 
-    await OutboxModel.create({
+    const outboxEvent: OutboxEvent = {
       eventId: event.eventId,
       topic: env.KAFKA_FILE_UPLOADED_TOPIC || "file.uploaded",
       key: saved.id!,
       payload: event,
       status: "pending",
       attempts: 0,
-    });
+    };
+
+    await this.outboxRepository.create(outboxEvent);
 
     await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
 
@@ -69,11 +75,15 @@ export class FileService {
 
   async downloadFile(fileId: string, ownerId: string) {
     const file = await this.fileRepository.findById(fileId);
-    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+    if (!file || !this.canRead(file, ownerId) || file.isDeleted) {
       throw new NotFoundError("File not found or access denied");
     }
 
     //await this.cacheService.set(`file_${file.id}`, file, 3600);
+
+    if (file.isFolder) {
+      throw new NotFoundError("Folder cannot be downloaded");
+    }
 
     return {
       file,
@@ -105,7 +115,7 @@ export class FileService {
       return cached;
     }
 
-    const result = await this.fileRepository.findByIdOwnerWithFilter(
+    const result = await this.fileRepository.findByUserWithFilter(
       ownerId,
       opts,
     );
@@ -118,7 +128,7 @@ export class FileService {
   async deleteFile(fileId: string, ownerId: string) {
     const file = await this.fileRepository.findById(fileId);
 
-    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+    if (!file || !this.canWrite(file, ownerId) || file.isDeleted) {
       throw new NotFoundError("File not found or access denied");
     }
 
@@ -151,5 +161,90 @@ export class FileService {
     await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
     await this.cacheService.delete(`file_${fileId}`);
     return updatedFile;
+  }
+
+  async createFolder(
+    ownerId: string,
+    name: string,
+    parentId?: string,
+  ): Promise<File> {
+    const folder = new File();
+    folder.ownerId = ownerId;
+    folder.parentId = parentId;
+    folder.name = name;
+    folder.mimeType = "folder";
+    folder.size = 0;
+    folder.storageKey = "";
+    folder.isFolder = true;
+
+    const saved = await this.fileRepository.save(folder);
+
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
+
+    return saved;
+  }
+
+  async shareFile(
+    fileId: string,
+    ownerId: string,
+    targetUserId: string,
+    permission: "read" | "write",
+  ) {
+    const file = await this.fileRepository.findById(fileId);
+    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+      throw new NotFoundError("File not found or access denied");
+    }
+
+    const sharedWith = file.sharedWith ?? [];
+    const existingIndex = sharedWith.findIndex(
+      (entry) => entry.userId === targetUserId,
+    );
+
+    if (existingIndex >= 0) {
+      sharedWith[existingIndex].permission = permission;
+    } else {
+      sharedWith.push({ userId: targetUserId, permission });
+    }
+
+    await this.fileRepository.update(fileId, { sharedWith });
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
+    await this.cacheService.set(
+      `file-list-version_${targetUserId}`,
+      Date.now(),
+    );
+  }
+
+  async unshareFile(fileId: string, ownerId: string, targetUserId: string) {
+    const file = await this.fileRepository.findById(fileId);
+    if (!file || file.ownerId !== ownerId || file.isDeleted) {
+      throw new NotFoundError("File not found or access denied");
+    }
+
+    const sharedWith = (file.sharedWith ?? []).filter(
+      (entry) => entry.userId !== targetUserId,
+    );
+
+    await this.fileRepository.update(fileId, { sharedWith });
+    await this.cacheService.set(`file-list-version_${ownerId}`, Date.now());
+    await this.cacheService.set(
+      `file-list-version_${targetUserId}`,
+      Date.now(),
+    );
+  }
+
+  private canRead(file: File, userId: string) {
+    return (
+      file.ownerId === userId ||
+      file.sharedWith?.some((entry) => entry.userId === userId)
+    );
+  }
+
+  private canWrite(file: File, userId: string) {
+    return (
+      file.ownerId === userId ||
+      file.sharedWith?.some(
+        (entry) => entry.userId === userId && entry.permission === "write",
+      )
+    );
   }
 }

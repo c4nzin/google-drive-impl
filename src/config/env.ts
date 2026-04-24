@@ -38,7 +38,8 @@ const EnvSchema = z.object({
   REDIS_URL: z.string().nonempty("REDIS_URL is required"),
   REDIS_MAX_RETRIES: z.number().default(5),
   REDIS_RETRY_DELAY: z.number().default(2000),
-  CACHE_PROVIDER: z.enum(["keyv", "redis", "memory"]).default("keyv"), //memory as in in memory cache
+  CACHE_PROVIDER: z.enum(["keyv", "redis", "memory"]).default("keyv"),
+  DB_PROVIDER: z.enum(["mongo", "postgres"]).default("mongo"),
 });
 
 export const env = EnvSchema.parse(process.env);

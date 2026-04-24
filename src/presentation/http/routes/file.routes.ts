@@ -3,7 +3,12 @@ import passport from "passport";
 import multer from "multer";
 import { FileController } from "../controllers/file.controller";
 import { validateRequest } from "../middlewares/validate-request";
-import { fileUpdateSchema, fileUploadSchema } from "../schemas/file.schema";
+import {
+  fileFolderSchema,
+  fileShareSchema,
+  fileUpdateSchema,
+  fileUploadSchema,
+} from "../schemas/file.schema";
 import { requireFile } from "../middlewares/require-file";
 
 const upload = multer({ dest: "./tmp/uploads" });
@@ -55,6 +60,26 @@ export class FileRoutes {
       "/:id",
       passport.authenticate("jwt", { session: false }),
       (req, res, next) => this.fileController.show(req, res, next),
+    );
+
+    this.router.post(
+      "/folders",
+      passport.authenticate("jwt", { session: false }),
+      validateRequest(fileFolderSchema),
+      (req, res, next) => this.fileController.createFolder(req, res, next),
+    );
+
+    this.router.post(
+      "/:id/share",
+      passport.authenticate("jwt", { session: false }),
+      validateRequest(fileShareSchema),
+      (req, res, next) => this.fileController.share(req as any, res, next),
+    );
+
+    this.router.delete(
+      "/:id/share/:targetUserId",
+      passport.authenticate("jwt", { session: false }),
+      (req, res, next) => this.fileController.unshare(req, res, next),
     );
   }
 }

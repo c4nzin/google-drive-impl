@@ -11,6 +11,16 @@ export const fileUpdateSchema = z.object({
   parentId: z.string().optional(),
 });
 
+export const fileFolderSchema = z.object({
+  parentId: z.string().optional(),
+  name: z.string().trim().min(1).max(255),
+});
+
+export const fileShareSchema = z.object({
+  targetUserId: z.string().nonempty(),
+  permission: z.enum(["read", "write"]).default("read"),
+});
+
 export const fileListQuerySchema = z.object({
   page: z
     .string()

@@ -1,15 +1,16 @@
 import "reflect-metadata";
-import { connectDatabase } from "../config/database";
 import { KafkaConsumer } from "../infrastructure/messaging/kafka.consumer";
 import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
 import Logger from "../infrastructure/logger";
 import { env } from "../config/env";
 import container from "../config/container";
 import { handleUserCreated } from "../application/handlers/user-created.handler";
-import { IQueue } from "../domain/interfaces";
+import { IQueue, IDatabaseAdapter } from "../domain/interfaces";
 
 async function start() {
-  await connectDatabase();
+  const databaseAdapter =
+    container.resolve<IDatabaseAdapter>("databaseAdapter");
+  await databaseAdapter.connect();
 
   const consumer = new KafkaConsumer(env.KAFKA_CONSUMER_GROUP_ID);
   const producer = new KafkaProducer();

@@ -26,6 +26,12 @@ export class FileResponseDto {
   isDeleted?: boolean;
 
   @AutoMap()
+  isFolder?: boolean;
+
+  @AutoMap()
+  sharedWith?: { userId: string; permission: "read" | "write" | "delete" }[];
+
+  @AutoMap()
   createdAt?: Date;
 
   @AutoMap()

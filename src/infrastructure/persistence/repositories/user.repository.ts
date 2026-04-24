@@ -1,62 +1,49 @@
+import { env } from "../../../config/env";
 import { User } from "../../../domain/entities/user";
 import {
   IUserRepository,
   QueryOptions,
 } from "../../../domain/interfaces/user-repository.interface";
+import { IDatabaseAdapter } from "../../../domain/interfaces";
 import { UserModel } from "../schemas/user-schema";
+import { MongoUserRepository } from "./mongo-user.repository";
+import { PostgresUserRepository } from "./postgres-user.repository";
 
 export class UserRepository implements IUserRepository {
-  constructor(private userModel: typeof UserModel) {}
+  private repository: IUserRepository;
 
-  async findById(id: string, options?: QueryOptions): Promise<User | null> {
-    const query = this.userModel.findById(id);
-
-    if (options?.select?.length) {
-      query.select(options.select.join(" "));
-    }
-
-    return query.exec();
+  constructor(databaseAdapter: IDatabaseAdapter) {
+    this.repository =
+      env.DB_PROVIDER === "postgres"
+        ? new PostgresUserRepository(databaseAdapter)
+        : new MongoUserRepository(UserModel);
   }
 
-  async findByEmail(
-    email: string,
-    options?: QueryOptions,
-  ): Promise<User | null> {
-    const query = this.userModel.findOne({ email });
-
-    if (options?.select?.length) {
-      query.select(options.select.join(" "));
-    }
-
-    return query.exec();
+  findById(id: string, options?: QueryOptions): Promise<User | null> {
+    return this.repository.findById(id, options);
   }
 
-  async save(user: User, options?: { session?: any }): Promise<User> {
-    if (options?.session) {
-      return this.userModel
-        .create([user], { session: options.session })
-        .then((docs) => docs[0]);
-    }
-
-    return this.userModel.create(user);
+  findByEmail(email: string, options?: QueryOptions): Promise<User | null> {
+    return this.repository.findByEmail(email, options);
   }
 
-  async update(id: string, user: Partial<User>): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, user, { new: true });
+  save(user: User, options?: { session?: any }): Promise<User> {
+    return this.repository.save(user, options);
   }
 
-  async delete(id: string): Promise<void> {
-    return this.userModel.findByIdAndDelete(id).then(() => {});
-  }
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+  update(id: string, user: Partial<User>): Promise<User | null> {
+    return this.repository.update(id, user);
   }
 
-  async clearRefreshToken(id: string): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(
-      id,
-      { $unset: { refreshToken: 1 } },
-      { new: true },
-    );
+  delete(id: string): Promise<void> {
+    return this.repository.delete(id);
+  }
+
+  findAll(): Promise<User[]> {
+    return this.repository.findAll();
+  }
+
+  clearRefreshToken(id: string): Promise<User | null> {
+    return this.repository.clearRefreshToken(id);
   }
 }

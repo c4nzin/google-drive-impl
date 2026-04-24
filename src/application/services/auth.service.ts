@@ -1,6 +1,10 @@
 import { User } from "../../domain/entities/user";
 import { IUserRepository } from "../../domain/interfaces/user-repository.interface";
 import {
+  IOutboxRepository,
+  OutboxEvent,
+} from "../../domain/interfaces/outbox-repository.interface";
+import {
   ConflictError,
   UnauthorizedError,
 } from "../../domain/errors/app-error";
@@ -8,13 +12,15 @@ import jwt from "jsonwebtoken";
 import * as bcrypt from "bcrypt";
 import { buildUserCreatedEvent } from "../dtos/user-created.event";
 import { IEventProducer } from "../../domain/interfaces/event-producer.interface";
+import { IDatabaseAdapter } from "../../domain/interfaces/database-interface";
 import { env } from "../../config/env";
 import Logger from "../../infrastructure/logger";
-import mongoose from "mongoose";
-import { OutboxModel } from "../../infrastructure/persistence/schemas/outbox.schema";
+
 export class AuthService {
   constructor(
     private userRepository: IUserRepository,
+    private databaseAdapter: IDatabaseAdapter,
+    private outboxRepository: IOutboxRepository,
     private jwtSecret: string,
     private jwtExpiresIn: string,
     private jwtRefreshSecret: string,
@@ -41,48 +47,47 @@ export class AuthService {
   }
 
   async register(data: User): Promise<User> {
-    const session = await mongoose.startSession();
-
-    session.startTransaction();
+    const session = await this.databaseAdapter.startSession();
 
     try {
-      const existingUser = await this.userRepository.findByEmail(data.email);
+      const saved = await session.withTransaction(async () => {
+        const existingUser = await this.userRepository.findByEmail(data.email);
 
-      if (existingUser) {
-        throw new ConflictError("Email already in use");
-      }
+        if (existingUser) {
+          throw new ConflictError("Email already in use");
+        }
 
-      const saved = await this.userRepository.save(data, { session });
+        const created = await this.userRepository.save(data, {
+          session: session.getNativeSession(),
+        });
 
-      const event = buildUserCreatedEvent({
-        id: saved.id!,
-        email: saved.email,
-        username: saved.username ?? null,
-        firstName: saved.firstName ?? null,
-        lastName: saved.lastName ?? null,
-        createdAt: saved.createdAt ?? new Date(),
+        const event = buildUserCreatedEvent({
+          id: created.id!,
+          email: created.email,
+          username: created.username ?? null,
+          firstName: created.firstName ?? null,
+          lastName: created.lastName ?? null,
+          createdAt: created.createdAt ?? new Date(),
+        });
+
+        const outboxEvent: OutboxEvent = {
+          eventId: event.eventId,
+          topic: env.KAFKA_USER_CREATED_TOPIC || "user.created",
+          key: created.id!,
+          payload: event,
+          status: "pending",
+        };
+
+        await this.outboxRepository.create(outboxEvent, {
+          session: session.getNativeSession(),
+        });
+
+        return created;
       });
 
-      await OutboxModel.create(
-        [
-          {
-            eventId: event.eventId,
-            topic: env.KAFKA_USER_CREATED_TOPIC || "user.created",
-            key: saved.id!,
-            payload: event,
-            status: "pending",
-          },
-        ],
-        { session },
-      );
-
-      await session.commitTransaction();
       return saved;
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 

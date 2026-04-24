@@ -9,6 +9,7 @@ export interface OutboxDocument {
   attempts: number;
   lastError?: string | null;
   createdAt: Date;
+  updatedAt: Date;
   publishedAt?: Date | null;
 }
 
@@ -25,6 +26,7 @@ const OutBoxSchema = new Schema<OutboxDocument>({
   attempts: { type: Number, default: 0 },
   lastError: { type: String, default: null },
   createdAt: { type: Date, default: () => new Date() },
+  updatedAt: { type: Date, default: () => new Date() },
   publishedAt: { type: Date, default: null },
 });
 

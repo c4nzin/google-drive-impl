@@ -9,10 +9,8 @@ import { AuthRoutes } from "../presentation/http/routes/auth.routes";
 import { env } from "./env";
 import { LocalStrategy } from "../infrastructure/passport/local.strategy";
 import { JwtStrategy } from "../infrastructure/passport/jwt-strategy";
-import { UserRepository } from "../infrastructure/persistence/repositories/user.repository";
 import { LocalStorageService } from "../infrastructure/storage/local-storage.service";
 import { FileService } from "../application/services/file.service";
-import { FileRepository } from "../infrastructure/persistence/repositories/file.repository";
 import { FileController } from "../presentation/http/controllers/file.controller";
 import { FileRoutes } from "../presentation/http/routes/file.routes";
 import { S3StorageService } from "../infrastructure/storage/s3-storage.service";
@@ -25,6 +23,11 @@ import { BullQueue } from "../infrastructure/queue/bull.queue";
 import { RedisCacheService } from "../infrastructure/cache/redis-cache.service";
 import { MemoryCacheService } from "../infrastructure/cache/memory-cache.service";
 import { CacheConstructor } from "../infrastructure/cache/cache.constructor";
+import { MongoDatabaseAdapter } from "../infrastructure/persistence/database/mongo.database";
+import { PostgresDatabaseAdapter } from "../infrastructure/persistence/database/postgres.database";
+import { UserRepository } from "../infrastructure/persistence/repositories/user.repository";
+import { FileRepository } from "../infrastructure/persistence/repositories/file.repository";
+import { OutboxRepository } from "../infrastructure/persistence/repositories/outbox.repository";
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -48,7 +51,6 @@ container.register({
   jwtRefreshSecret: asValue(env.JWT_REFRESH_SECRET),
   jwtRefreshExpiresIn: asValue(env.JWT_REFRESH_EXPIRES_IN),
 
-  userRepository: asClass(UserRepository).singleton(),
   userService: asClass(UserService).singleton(),
   userController: asClass(UserController).scoped(),
   userRoutes: asClass(UserRoutes).scoped(),
@@ -59,13 +61,18 @@ container.register({
   localStrategy: asClass(LocalStrategy).singleton(),
   jwtStrategy: asClass(JwtStrategy).singleton(),
   storageService: storageServiceRegistration,
-  fileRepository: asClass(FileRepository).singleton(),
   fileService: asClass(FileService).singleton(),
   fileController: asClass(FileController).scoped(),
   fileRoutes: asClass(FileRoutes).scoped(),
 
   cacheService: asClass(cacheImplementation).singleton(),
-
+  databaseAdapter:
+    env.DB_PROVIDER === "postgres"
+      ? asClass(PostgresDatabaseAdapter).singleton()
+      : asClass(MongoDatabaseAdapter).singleton(),
+  userRepository: asClass(UserRepository).singleton(),
+  fileRepository: asClass(FileRepository).singleton(),
+  outboxRepository: asClass(OutboxRepository).singleton(),
   //kafka
   eventProducer: asClass(KafkaProducer).singleton(),
 

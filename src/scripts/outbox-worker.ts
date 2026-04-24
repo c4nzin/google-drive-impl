@@ -1,14 +1,19 @@
 import "reflect-metadata";
-import { connectDatabase } from "../config/database";
 import { KafkaProducer } from "../infrastructure/messaging/kafka.producer";
 import Logger from "../infrastructure/logger";
+import container from "../config/container";
 import { publishPendingOutboxEvents } from "../infrastructure/messaging/outbox.publisher";
+import { IDatabaseAdapter, IOutboxRepository } from "../domain/interfaces";
 
 const WORKER_INTERVAL_MS = 5000;
 
 async function startWorker() {
-  await connectDatabase();
+  const databaseAdapter =
+    container.resolve<IDatabaseAdapter>("databaseAdapter");
+  await databaseAdapter.connect();
 
+  const outboxRepository =
+    container.resolve<IOutboxRepository>("outboxRepository");
   const producer = new KafkaProducer();
 
   await producer.connect();
@@ -17,7 +22,7 @@ async function startWorker() {
 
   while (true) {
     try {
-      await publishPendingOutboxEvents(producer);
+      await publishPendingOutboxEvents(producer, outboxRepository);
     } catch (error: any) {
       Logger.error(`Error in outbox worker: ${error.message}`);
     }

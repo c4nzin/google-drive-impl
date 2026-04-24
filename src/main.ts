@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import pinoHttp from "pino-http";
 import Logger from "./infrastructure/logger";
 import { env } from "./config/env";
-import { connectDatabase } from "./config/database";
+import { IDatabaseAdapter } from "./domain/interfaces";
 import cookieParser from "cookie-parser";
 import { HttpStatus } from "./domain/errors/status-codes.enum";
 import { UserRoutes } from "./presentation/http/routes/user-routes";
@@ -22,7 +22,6 @@ import helmet from "helmet";
 import { buildSwagger } from "./presentation/http/swagger/swagger.builder";
 import { JwtStrategy } from "./infrastructure/passport/jwt-strategy";
 import { FileRoutes } from "./presentation/http/routes/file.routes";
-import { asValue } from "awilix";
 import { createKafkaTopic } from "./create-kafka.topic";
 
 async function bootstrap(): Promise<void> {
@@ -65,7 +64,10 @@ async function bootstrap(): Promise<void> {
   passport.use(container.resolve<LocalStrategy>("localStrategy"));
 
   await createKafkaTopic();
-  await connectDatabase();
+
+  const databaseAdapter =
+    container.resolve<IDatabaseAdapter>("databaseAdapter");
+  await databaseAdapter.connect();
 
   try {
     const kafkaProducer: any = container.resolve("eventProducer");
@@ -96,7 +98,9 @@ async function bootstrap(): Promise<void> {
 
   app.get("/health", async (req: Request, res: Response) => {
     try {
-      const dbCheck = (await connectDatabase()).connection.readyState === 1; // 1 == connected
+      const databaseAdapter =
+        container.resolve<IDatabaseAdapter>("databaseAdapter");
+      const dbCheck = databaseAdapter.isConnected();
 
       return res.status(HttpStatus.OK).json({
         status: "ok",

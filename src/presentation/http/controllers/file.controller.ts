@@ -78,6 +78,37 @@ export class FileController {
     }
   }
 
+  async createFolder(req: Request, res: Response, next: NextFunction) {
+    const ownerId = (req.user as any).id;
+    const { name, parentId } = req.body;
+    const created = await this.fileService.createFolder(
+      ownerId,
+      name,
+      parentId,
+    );
+    const response = mapper.map(created, File, FileResponseDto);
+    res.status(HttpStatus.Created).json(response);
+  }
+
+  async share(req: Request<FileParams>, res: Response, next: NextFunction) {
+    const ownerId = (req.user as any).id;
+    const { targetUserId, permission } = req.body;
+    await this.fileService.shareFile(
+      req.params.id,
+      ownerId,
+      targetUserId,
+      permission,
+    );
+    res.status(HttpStatus.NoContent).send();
+  }
+
+  async unshare(req: Request<FileParams>, res: Response, next: NextFunction) {
+    const ownerId = (req.user as any).id;
+    const { targetUserId } = req.params as any;
+    await this.fileService.unshareFile(req.params.id, ownerId, targetUserId);
+    res.status(HttpStatus.NoContent).send();
+  }
+
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const ownerId = (req.user as any).id;

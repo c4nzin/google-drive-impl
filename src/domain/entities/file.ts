@@ -1,5 +1,12 @@
 import { AutoMap } from "@automapper/classes";
 
+export type FilePermission = "read" | "write" | "delete";
+
+export type SharedWithEntry = {
+  userId: string;
+  permission: FilePermission;
+};
+
 export class File {
   @AutoMap()
   id?: string;
@@ -30,4 +37,10 @@ export class File {
 
   @AutoMap()
   updatedAt?: Date;
+
+  @AutoMap()
+  sharedWith?: SharedWithEntry[];
+
+  @AutoMap()
+  isFolder?: boolean;
 }
